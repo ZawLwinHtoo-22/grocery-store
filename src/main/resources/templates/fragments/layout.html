@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav th:fragment="navbar" class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold text-success" th:href="@{/}">
+            <span class="brand-mark">R&O</span>
+            Rice & Oil Store
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+                aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div id="mainNav" class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/}" th:text="#{nav.products}">Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/track}" th:text="#{nav.track}">Track Order</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-outline-success btn-sm nav-cart-btn" th:href="@{/cart}" aria-label="Open cart">
+                        <i class="bi bi-cart3" aria-hidden="true"></i>
+                        <span th:text="#{nav.cart}">Cart</span>
+                        <span class="badge text-bg-success" th:text="${cart != null ? cart.itemCount : 0}">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <div class="language-switch">
+                        <a th:href="@{/(lang='my')}" th:text="#{lang.my}">မြန်မာ</a>
+                        <span>|</span>
+                        <a th:href="@{/(lang='en')}" th:text="#{lang.en}">English</a>
+                    </div>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">Admin</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="staff-link" th:href="@{/login}" aria-label="Staff portal">
+                        <i class="bi bi-shield-lock" aria-hidden="true"></i>
+                        <span th:text="#{nav.staff}">Staff</span>
+                    </a>
+                </li>
+                <li class="nav-item" sec:authorize="isAuthenticated()">
+                    <form th:action="@{/logout}" method="post">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-link nav-link" type="submit" th:text="#{nav.logout}">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div th:fragment="alerts" class="container mt-3">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${success}">Success</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<footer th:fragment="footer" class="site-footer mt-5">
+    <div class="container py-4">
+        <div class="row g-4">
+            <div class="col-md-5">
+                <h2 class="h5 fw-bold" th:text="#{footer.about}">Rice & Oil Store</h2>
+                <p class="mb-2" th:text="#{footer.aboutText}">Fresh rice and cooking oil with admin-confirmed stock before payment.</p>
+                <p class="footer-contact mb-0">Phone: 09 123 456 789</p>
+                <p class="footer-contact mb-0">Delivery: Yangon and nearby townships</p>
+            </div>
+            <div class="col-6 col-md-3">
+                <h3 class="h6 fw-bold" th:text="#{footer.quick}">Quick Links</h3>
+                <ul class="list-unstyled footer-links">
+                    <li><a th:href="@{/}" th:text="#{nav.products}">Products</a></li>
+                    <li><a th:href="@{/track}" th:text="#{nav.track}">Track Order</a></li>
+                    <li><a th:href="@{/cart}" th:text="#{nav.cart}">Cart</a></li>
+                    <li><a th:href="@{/login}" th:text="#{nav.staff}">Staff Portal</a></li>
+                </ul>
+            </div>
+            <div class="col-6 col-md-4">
+                <h3 class="h6 fw-bold" th:text="#{footer.process}">Order Process</h3>
+                <ol class="footer-steps mb-0">
+                    <li th:text="#{footer.submit}">Submit order</li>
+                    <li th:text="#{footer.wait}">Wait for stock approval</li>
+                    <li th:text="#{footer.upload}">Pay and upload screenshot</li>
+                    <li th:text="#{footer.deliver}">Delivery after confirmation</li>
+                </ol>
+            </div>
+        </div>
+        <div class="footer-bottom mt-4 pt-3">
+            <span>Current prices are shown before checkout.</span>
+            <span>© 2026 Rice & Oil Store</span>
+        </div>
+    </div>
+</footer>
+</body>
+</html>

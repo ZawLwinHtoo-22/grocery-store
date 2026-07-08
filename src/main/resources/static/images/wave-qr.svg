@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="Wave QR placeholder">
+  <rect width="180" height="180" fill="#fff"/>
+  <rect x="10" y="10" width="50" height="50" fill="#111"/>
+  <rect x="20" y="20" width="30" height="30" fill="#fff"/>
+  <rect x="120" y="10" width="50" height="50" fill="#111"/>
+  <rect x="130" y="20" width="30" height="30" fill="#fff"/>
+  <rect x="10" y="120" width="50" height="50" fill="#111"/>
+  <rect x="20" y="130" width="30" height="30" fill="#fff"/>
+  <path d="M78 18h18v18H78zm36 18h18v18h-18zM78 54h36v18H78zm54 18h18v18h-18zM78 90h18v18H78zm18 18h18v18H96zm36 0h36v18h-36zM78 144h36v18H78zm54-18h18v36h-18zm18-54h18v18h-18z" fill="#111"/>
+  <text x="90" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="19" font-weight="700" fill="#0d6efd">WAVE</text>
+</svg>

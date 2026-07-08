@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Oil jug">
+  <rect width="640" height="480" fill="#edf4ea"/>
+  <path d="M245 110h150c45 0 80 35 80 80v170c0 38-31 70-70 70H235c-39 0-70-32-70-70V190c0-45 35-80 80-80z" fill="#f8d35d" stroke="#198754" stroke-width="14"/>
+  <path d="M385 160h40c20 0 35 15 35 35v80c0 20-15 35-35 35h-40" fill="none" stroke="#198754" stroke-width="18"/>
+  <rect x="255" y="55" width="120" height="65" rx="12" fill="#198754"/>
+  <text x="310" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#17221b">SUN</text>
+  <text x="310" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#17221b">OIL</text>
+</svg>

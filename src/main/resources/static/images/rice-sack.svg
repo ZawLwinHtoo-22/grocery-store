@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Rice sack">
+  <rect width="640" height="480" fill="#f7f3e8"/>
+  <path d="M190 125c45-35 215-35 260 0l35 265c-40 35-290 35-330 0l35-265z" fill="#fffaf0" stroke="#8f6b35" stroke-width="14"/>
+  <path d="M225 130c45 24 145 24 190 0" fill="none" stroke="#8f6b35" stroke-width="10" stroke-linecap="round"/>
+  <text x="320" y="235" text-anchor="middle" font-family="Arial, sans-serif" font-size="52" font-weight="700" fill="#8f6b35">JASMINE</text>
+  <text x="320" y="295" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" fill="#17221b">10 KG RICE</text>
+</svg>

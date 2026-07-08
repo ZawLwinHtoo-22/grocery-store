@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" role="img" aria-label="KPay QR placeholder">
+  <rect width="180" height="180" fill="#fff"/>
+  <rect x="10" y="10" width="50" height="50" fill="#111"/>
+  <rect x="20" y="20" width="30" height="30" fill="#fff"/>
+  <rect x="120" y="10" width="50" height="50" fill="#111"/>
+  <rect x="130" y="20" width="30" height="30" fill="#fff"/>
+  <rect x="10" y="120" width="50" height="50" fill="#111"/>
+  <rect x="20" y="130" width="30" height="30" fill="#fff"/>
+  <path d="M78 20h18v18H78zm0 36h18v18H78zm18 18h18v18H96zm36 18h18v18h-18zM78 114h18v18H78zm18 18h18v18H96zm36 0h18v18h-18zm18-36h18v18h-18zM78 150h18v18H78zm54 0h36v18h-36z" fill="#111"/>
+  <text x="90" y="104" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#198754">KPAY</text>
+</svg>

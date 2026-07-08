@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rice & Oil Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main class="container py-4">
+    <section class="store-hero mb-4">
+        <div class="store-hero-copy">
+            <p class="text-uppercase small text-success fw-semibold mb-2" th:text="#{home.badge}">Fresh stock, current prices</p>
+            <h1 class="display-6 fw-bold mb-2" th:text="#{home.title}">Rice and cooking oil delivered to your door.</h1>
+            <p class="text-secondary mb-0" th:text="#{home.subtitle}">Choose your items, place an order, then pay only after admin confirms stock availability.</p>
+        </div>
+        <div class="hero-points" aria-label="Order benefits">
+            <div><strong th:text="#{home.noAccount}">No account</strong><span th:text="#{home.noAccountText}">Order with name, phone, address</span></div>
+            <div><strong th:text="#{home.payLater}">Pay later</strong><span th:text="#{home.payLaterText}">After stock approval only</span></div>
+            <div><strong th:text="#{home.easyTracking}">Easy tracking</strong><span th:text="#{home.easyTrackingText}">Use your order page</span></div>
+        </div>
+    </section>
+
+    <div class="section-heading mb-3">
+        <div>
+            <h2 class="h4 fw-bold mb-1" th:text="#{home.available}">Available Products</h2>
+            <p class="text-secondary mb-0" th:text="#{home.availableText}">Tap a product to view details, price, and delivery steps.</p>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-sm-6 col-lg-3" th:each="product : ${products}">
+            <div class="card product-card h-100">
+                <a th:href="@{/products/{id}(id=${product.id})}" class="product-link">
+                    <img th:src="@{${product.imageUrl}}" class="card-img-top product-img" th:alt="${product.name}">
+                </a>
+                <div class="card-body d-flex flex-column">
+                    <a th:href="@{/products/{id}(id=${product.id})}" class="product-title-link">
+                        <h3 class="h5 card-title fw-bold" th:text="${product.name}">Product</h3>
+                    </a>
+                    <p class="text-secondary small mb-2" th:text="${product.unitLabel}">Unit</p>
+                    <p class="h5 text-success fw-bold mb-3">
+                        <span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">0</span> ကျပ်
+                    </p>
+                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="mt-auto product-actions">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="input-group">
+                            <input class="form-control" type="number" name="quantity" min="1" value="1" aria-label="Quantity">
+                            <button class="btn btn-success add-cart-btn" type="submit">
+                                <i class="bi bi-cart-plus" aria-hidden="true"></i>
+                                <span th:text="#{home.add}">Add</span>
+                            </button>
+                        </div>
+                        <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-link product-detail-btn" th:text="#{home.viewDetails}">View details</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-12" th:if="${#lists.isEmpty(products)}">
+            <div class="empty-state text-center py-5">
+                <h2 class="h5">No products available right now.</h2>
+                <p class="text-secondary mb-0">Please check back soon.</p>
+            </div>
+        </div>
+    </div>
+
+    <section class="process-section mt-5">
+        <div class="section-heading mb-3">
+            <div>
+                <h2 class="h4 fw-bold mb-1" th:text="#{home.flow}">Simple Order Flow</h2>
+                <p class="text-secondary mb-0" th:text="#{home.flowText}">Designed for customers who want clear steps and no registration.</p>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-lg-3">
+                <div class="process-card">
+                    <i class="bi bi-basket" aria-hidden="true"></i>
+                    <strong th:text="#{home.choose}">Choose Items</strong>
+                    <span th:text="#{home.chooseText}">Add rice or oil to cart.</span>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="process-card">
+                    <i class="bi bi-clipboard-check" aria-hidden="true"></i>
+                    <strong th:text="#{home.approve}">Admin Approves</strong>
+                    <span th:text="#{home.approveText}">Stock is checked first.</span>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="process-card">
+                    <i class="bi bi-qr-code" aria-hidden="true"></i>
+                    <strong th:text="#{home.pay}">Pay Securely</strong>
+                    <span th:text="#{home.payText}">Upload payment screenshot.</span>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="process-card">
+                    <i class="bi bi-truck" aria-hidden="true"></i>
+                    <strong th:text="#{home.delivery}">Delivery</strong>
+                    <span th:text="#{home.deliveryText}">Sent after confirmation.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: grocery-store
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    cache-duration: 0
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=grocery_store;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: root
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        format_sql: true
+    open-in-view: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+server:
+  port: 8080
+
+app:
+  admin:
+    username: admin
+    password: admin123
+  uploads:
+    payment-dir: uploads/payments
+  payment:
+    kpay-phone: "09 123 456 789"
+    wave-phone: "09 987 654 321"
