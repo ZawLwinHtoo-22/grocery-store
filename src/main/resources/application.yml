@@ -26,6 +26,7 @@ spring:
 
 server:
   port: 8080
+  address: 0.0.0.0
 
 app:
   admin:
@@ -34,5 +35,5 @@ app:
   uploads:
     payment-dir: uploads/payments
   payment:
-    kpay-phone: "09 123 456 789"
-    wave-phone: "09 987 654 321"
+    kpay-phone: "09 96 2800 540"
+    wave-phone: "09 96 2800 540"

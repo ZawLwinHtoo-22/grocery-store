@@ -2,6 +2,7 @@ package com.example.grocerystore.controller;
 
 import com.example.grocerystore.model.OrderStatus;
 import com.example.grocerystore.model.Product;
+import com.example.grocerystore.service.CloudinaryService;
 import com.example.grocerystore.service.OrderService;
 import com.example.grocerystore.service.ProductService;
 import javax.validation.Valid;
@@ -15,7 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.IOException;
 
 @Controller
 @RequestMapping("/admin")
@@ -23,10 +27,12 @@ public class AdminController {
 
     private final ProductService productService;
     private final OrderService orderService;
+    private final CloudinaryService cloudinaryService;
 
-    public AdminController(ProductService productService, OrderService orderService) {
+    public AdminController(ProductService productService, OrderService orderService, CloudinaryService cloudinaryService) {
         this.productService = productService;
         this.orderService = orderService;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @GetMapping({"", "/dashboard"})
@@ -47,14 +53,33 @@ public class AdminController {
     @PostMapping("/products")
     public String saveProduct(@Valid @ModelAttribute("productForm") Product product,
                               BindingResult bindingResult,
+                              @RequestParam("imageFile") MultipartFile imageFile,
                               RedirectAttributes redirectAttributes,
                               Model model) {
+
+        if (product.getId() == null && imageFile.isEmpty()) {
+            bindingResult.rejectValue("imageUrl", "error.product", "Please upload an image.");
+        }
+
         if (bindingResult.hasErrors()) {
             addDashboardModel(model, null, product);
             return "admin/admin-dashboard";
         }
-        productService.save(product);
-        redirectAttributes.addFlashAttribute("success", "Product saved.");
+
+        try {
+            if (!imageFile.isEmpty()) {
+                String uploadedImageUrl = cloudinaryService.uploadImage(imageFile);
+                product.setImageUrl(uploadedImageUrl);
+            }
+
+            productService.save(product);
+            redirectAttributes.addFlashAttribute("success", "Product saved successfully.");
+        } catch (IOException e) {
+            bindingResult.rejectValue("imageUrl", "error.product", "Failed to upload image.");
+            addDashboardModel(model, null, product);
+            return "admin/admin-dashboard";
+        }
+
         return "redirect:/admin/dashboard#products";
     }
 

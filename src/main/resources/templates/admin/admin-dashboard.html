@@ -87,7 +87,7 @@
         <section class="col-xl-4" id="products">
             <div class="admin-panel mb-4">
                 <h2 class="h5 fw-bold" th:text="${editing} ? 'Edit Product' : 'Add Product'">Add Product</h2>
-                <form th:action="@{/admin/products}" th:object="${productForm}" method="post">
+                <form th:action="@{/admin/products}" th:object="${productForm}" method="post" enctype="multipart/form-data" >
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" th:field="*{id}">
                     <div class="mb-3">
@@ -105,10 +105,15 @@
                             <input id="unitLabel" class="form-control" th:field="*{unitLabel}" placeholder="25 kg bag">
                         </div>
                     </div>
-                    <div class="my-3">
+                    <!--<div class="my-3">
                         <label class="form-label" for="imageUrl">Image URL</label>
                         <input id="imageUrl" class="form-control" th:field="*{imageUrl}" required>
+                    </div>-->
+                    <div class="my-3">
+                        <label class="form-label" for="imageFile">Product Image</label>
+                        <input id="imageFile" type="file" name="imageFile" class="form-control" accept="image/*" th:required="${editing == null}">
                     </div>
+                    <input type="hidden" th:field="*{imageUrl}">
                     <div class="form-check form-switch mb-3">
                         <input id="available" class="form-check-input" type="checkbox" th:field="*{available}">
                         <label class="form-check-label" for="available">Available in stock</label>
