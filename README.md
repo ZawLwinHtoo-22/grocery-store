@@ -37,4 +37,4 @@ Then open:
 - Store: `http://localhost:8080/`
 - Admin: `http://localhost:8080/admin/dashboard`
 
-Payment screenshots are stored under `uploads/payments`.
+Payment screenshots and product images are uploaded to Cloudinary (configure credentials via environment variables). The application does not rely on local disk storage for user uploads.

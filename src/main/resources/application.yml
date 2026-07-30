@@ -7,10 +7,17 @@ spring:
     fallback-to-system-locale: false
     cache-duration: 0
   datasource:
-    url: jdbc:sqlserver://localhost:1433;databaseName=grocery_store;encrypt=true;trustServerCertificate=true
+    # Ensure the SQL Server driver sends string parameters as Unicode
+    url: jdbc:sqlserver://localhost:1433;databaseName=grocery_store;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
     username: sa
     password: root
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  # Force HTTP/JSON encoding to UTF-8 to preserve Myanmar characters in responses
+  http:
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force: true
   jpa:
     hibernate:
       ddl-auto: update
@@ -37,3 +44,10 @@ app:
   payment:
     kpay-phone: "09 96 2800 540"
     wave-phone: "09 96 2800 540"
+
+# Cloudinary configuration. Set via environment variables in production:
+#   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
+cloudinary:
+cloud-name: ${dzq4fv63:}
+api-key: ${362331865784937:}
+api-secret: ${bSE0KQTaXpNirJ9Ef-FptCtgucs:}

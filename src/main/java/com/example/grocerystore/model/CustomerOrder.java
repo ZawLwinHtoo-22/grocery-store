@@ -48,6 +48,16 @@ public class CustomerOrder {
     @Column(length = 500)
     private String paymentScreenshotPath;
 
+    @Column(length = 120)
+    private String preferredDeliverySlot;
+
+    @Column(length = 500)
+    private String deliveryNote;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 40)
+    private PaymentChannel paymentChannel = PaymentChannel.UNKNOWN;
+
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -61,12 +71,6 @@ public class CustomerOrder {
         item.setOrder(this);
     }
 
-    @PrePersist
-    void ensureTrackingCode() {
-        if (trackingCode == null || trackingCode.isBlank()) {
-            trackingCode = UUID.randomUUID().toString();
-        }
-    }
 
     public Long getId() {
         return id;
@@ -132,6 +136,22 @@ public class CustomerOrder {
         this.paymentScreenshotPath = paymentScreenshotPath;
     }
 
+    public String getPreferredDeliverySlot() {
+        return preferredDeliverySlot;
+    }
+
+    public void setPreferredDeliverySlot(String preferredDeliverySlot) {
+        this.preferredDeliverySlot = preferredDeliverySlot;
+    }
+
+    public String getDeliveryNote() {
+        return deliveryNote;
+    }
+
+    public void setDeliveryNote(String deliveryNote) {
+        this.deliveryNote = deliveryNote;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -154,5 +174,13 @@ public class CustomerOrder {
 
     public void setItems(List<OrderItem> items) {
         this.items = items;
+    }
+
+    public PaymentChannel getPaymentChannel() {
+        return paymentChannel;
+    }
+
+    public void setPaymentChannel(PaymentChannel paymentChannel) {
+        this.paymentChannel = paymentChannel;
     }
 }

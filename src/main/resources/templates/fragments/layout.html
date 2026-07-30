@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
     <div class="container">
@@ -97,6 +97,149 @@
             <span>© 2026 Rice & Oil Store</span>
         </div>
     </div>
+
+   <!-- Floating cart button (Only rendered for non-admin/customer views) -->
+<div id="floatingCart" sec:authorize="!hasRole('ADMIN')" style="position:fixed;right:16px;bottom:16px;z-index:1050;">
+    <a th:href="@{/cart}" id="floatingCartBtn" class="btn btn-success rounded-circle shadow-lg" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;position:relative;text-decoration:none;" aria-label="View Cart">
+        <i class="bi bi-cart3" style="font-size:20px;color:#fff"></i>
+        <span id="floatingCartBadge" class="badge text-bg-danger" style="position:absolute;top:4px;right:4px;display:none;">0</span>
+    </a>
+</div>
+
+<!-- Toast container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1060">
+    <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">Item added to cart!</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // Get cart count endpoint
+        async function fetchCartCount() {
+            try {
+                const res = await fetch('/cart/count');
+                if (!res.ok) return;
+                const data = await res.json();
+                updateBadge(data.count || 0);
+            } catch (e) {
+                console.error('Failed to fetch cart count', e);
+            }
+        }
+
+        function updateBadge(count) {
+            const badge = document.getElementById('floatingCartBadge');
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+            // update navbar badge if present
+            document.querySelectorAll('.nav-cart-btn .badge').forEach(b => {
+                b.textContent = count;
+                b.style.display = count > 0 ? 'inline-block' : 'none';
+            });
+        }
+
+        // Delegate add-to-cart: use event delegation so handlers work even if script runs before forms are added
+        async function handleAddToCartFormSubmission(form){
+            // include CSRF token header if available (search for hidden input containing 'csrf' in name)
+            const fd = new FormData(form);
+            let headers = {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'};
+            try {
+                const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
+                for (const inp of hiddenInputs) {
+                    const name = (inp.getAttribute('name') || '').toLowerCase();
+                    if (name.includes('csrf')) {
+                        const token = inp.value;
+                        if (token) headers['X-CSRF-TOKEN'] = token;
+                        break;
+                    }
+                }
+            } catch(e){ /* ignore */ }
+
+            try {
+                const res = await fetch(form.action, {
+                    method: form.method || 'POST',
+                    headers: headers,
+                    body: fd
+                });
+                
+                let newCartCount = null;
+                if (res.ok) {
+                    try {
+                        const data = await res.json();
+                        if (data && typeof data.cartCount === 'number') {
+                            newCartCount = data.cartCount;
+                        }
+                    } catch(ex){ /* non-json fallback */ }
+                }
+
+                // show toast notification
+                const toastEl = document.getElementById('cartToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl);
+                    toast.show();
+                }
+
+                // Update count dynamically
+                if (newCartCount !== null) {
+                    updateBadge(newCartCount);
+                } else {
+                    await fetchCartCount();
+                }
+
+                // Pulse floating button
+                const btn = document.getElementById('floatingCartBtn');
+                if (btn) {
+                    btn.classList.add('floating-pulse');
+                    setTimeout(()=> btn.classList.remove('floating-pulse'), 500);
+                }
+            } catch (err) {
+                console.error('Add to cart failed', err);
+            }
+        }
+
+        // Delegated submit listener - use includes() to match action path regardless of query params or prefix
+        document.addEventListener('submit', function(e){
+            try {
+                const form = e.target;
+                if (!form || !form.action) return;
+                // handle cases where lang or other query params may alter the action attribute ordering
+                const action = form.getAttribute('action') || form.action || '';
+                if (action.includes('/cart/add/')){
+                    e.preventDefault();
+                    handleAddToCartFormSubmission(form);
+                }
+            } catch(ex) {
+                console.error(ex);
+            }
+        });
+
+        // Convenience function to call from buttons (progressive enhancement)
+        window.addToCartSubmit = function(form){
+            if (!form) return;
+            handleAddToCartFormSubmission(form);
+        };
+
+        // Floating cart button click behaviour fallback
+        const floatingCartBtn = document.getElementById('floatingCartBtn');
+        if (floatingCartBtn) {
+            floatingCartBtn.addEventListener('click', function(e){
+                const href = this.getAttribute('href');
+                if (href) {
+                    window.location.href = href;
+                }
+            });
+        }
+
+        // Initial actions
+        fetchCartCount();
+    })();
+</script>
 </footer>
+
 </body>
 </html>

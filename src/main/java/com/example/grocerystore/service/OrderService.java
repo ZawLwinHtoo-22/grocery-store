@@ -9,16 +9,12 @@ import com.example.grocerystore.model.OrderStatus;
 import com.example.grocerystore.model.Product;
 import com.example.grocerystore.repository.OrderRepository;
 import com.example.grocerystore.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,14 +24,14 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
-    private final Path paymentUploadDir;
+    private final com.example.grocerystore.service.CloudinaryService cloudinaryService;
 
     public OrderService(OrderRepository orderRepository,
                         ProductRepository productRepository,
-                        @Value("${app.uploads.payment-dir}") String paymentUploadDir) {
+                        com.example.grocerystore.service.CloudinaryService cloudinaryService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
-        this.paymentUploadDir = Path.of(paymentUploadDir);
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -69,6 +65,17 @@ public class OrderService {
 
         order.setTotalAmount(total);
         order.setUpdatedAt(LocalDateTime.now());
+
+        // persist preferred delivery slot from the checkout form if present
+        if (form != null) {
+            order.setPreferredDeliverySlot(form.getPreferredDeliverySlot());
+            order.setDeliveryNote(form.getDeliveryNote());
+        }
+
+        // Generate professional tracking code: ORD-YYYYMMDD-XXXXXX where XXXXXX is a 6-digit sequential number for the day
+        String trackingCode = generateTrackingCode();
+        order.setTrackingCode(trackingCode);
+
         return orderRepository.save(order);
     }
 
@@ -82,8 +89,9 @@ public class OrderService {
     public CustomerOrder ensureTrackingCode(Long id) {
         CustomerOrder order = findWithItems(id);
         if (order.getTrackingCode() == null || order.getTrackingCode().isBlank()) {
-            order.setTrackingCode(UUID.randomUUID().toString());
+            order.setTrackingCode(generateTrackingCode());
             order.setUpdatedAt(LocalDateTime.now());
+            orderRepository.save(order);
         }
         return order;
     }
@@ -100,6 +108,11 @@ public class OrderService {
             return orderRepository.findAllByOrderByCreatedAtDesc();
         }
         return orderRepository.findByStatusOrderByCreatedAtDesc(status);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerOrder> findByPhoneNumber(String phoneNumber) {
+        return orderRepository.findByPhoneNumberOrderByCreatedAtDesc(phoneNumber);
     }
 
     @Transactional
@@ -136,20 +149,27 @@ public class OrderService {
             throw new IllegalArgumentException("Payment screenshot is required");
         }
 
-        Files.createDirectories(paymentUploadDir);
-        String originalName = screenshot.getOriginalFilename() == null ? "payment" : screenshot.getOriginalFilename();
-        String extension = "";
-        int dotIndex = originalName.lastIndexOf('.');
-        if (dotIndex >= 0) {
-            extension = originalName.substring(dotIndex);
+        // Upload screenshot to Cloudinary and store the returned secure URL on the order
+        try {
+            String uploadedUrl = cloudinaryService.uploadImage(screenshot);
+            order.setPaymentScreenshotPath(uploadedUrl);
+            order.setStatus(OrderStatus.PAYMENT_SUBMITTED);
+            order.setUpdatedAt(LocalDateTime.now());
+        } catch (IOException ex) {
+            throw ex;
         }
-        String fileName = "order-" + order.getId() + "-" + UUID.randomUUID() + extension;
-        Path destination = paymentUploadDir.resolve(fileName).normalize();
-        Files.copy(screenshot.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+    }
 
-        order.setPaymentScreenshotPath("/payments/" + fileName);
-        order.setStatus(OrderStatus.PAYMENT_SUBMITTED);
-        order.setUpdatedAt(LocalDateTime.now());
+    // Generate tracking code: ORD-YYYYMMDD-XXXXXX where XXXXXX is sequential per day
+    private String generateTrackingCode() {
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalDateTime start = today.atStartOfDay();
+        java.time.LocalDateTime end = today.plusDays(1).atStartOfDay().minusNanos(1);
+        long countToday = orderRepository.countByCreatedAtBetween(start, end);
+        long sequence = countToday + 1; // simple increment — note: race conditions may occur under heavy concurrent orders
+        String seqStr = String.format("%06d", sequence);
+        String dateStr = today.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE); // YYYYMMDD
+        return "ORD-" + dateStr + "-" + seqStr;
     }
 
     private void requireStatus(CustomerOrder order, OrderStatus expected) {

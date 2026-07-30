@@ -21,7 +21,7 @@ public class Product {
     private Long id;
 
     @NotBlank
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 120, columnDefinition = "NVARCHAR(120)")
     private String name;
 
     @NotNull
@@ -30,13 +30,13 @@ public class Product {
     private BigDecimal price;
 
     @NotBlank
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 500, columnDefinition = "NVARCHAR(500)")
     private String imageUrl;
 
     @Column(nullable = false)
     private boolean available = true;
 
-    @Column(length = 40)
+    @Column(length = 40, columnDefinition = "NVARCHAR(40)")
     private String unitLabel = "unit";
 
     public Long getId() {

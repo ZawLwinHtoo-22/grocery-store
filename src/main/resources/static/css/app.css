@@ -220,6 +220,30 @@ body {
     color: var(--store-green);
 }
 
+/* Price display class used across templates. Larger size for Myanmar locale to make Myanmar digits readable */
+.price {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--store-green);
+}
+
+html[lang="my"] .price {
+    /* Increase size for Myanmar numerals and use Myanmar-friendly fonts when available */
+    font-size: 1.5rem;
+    font-family: "Noto Sans Myanmar", "Myanmar3", "Padauk", sans-serif;
+}
+
+/* Floating cart pulse animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+.floating-pulse {
+  animation: pulse 420ms ease-in-out;
+}
+
 .simple-info-grid {
     display: grid;
     gap: 0.75rem;

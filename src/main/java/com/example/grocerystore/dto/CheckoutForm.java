@@ -18,6 +18,13 @@ public class CheckoutForm {
     @Size(max = 1000)
     private String deliveryAddress;
 
+    // Preferred delivery slot - optional
+    @Size(max = 120)
+    private String preferredDeliverySlot;
+
+    @Size(max = 500)
+    private String deliveryNote;
+
     public String getCustomerName() {
         return customerName;
     }
@@ -40,5 +47,21 @@ public class CheckoutForm {
 
     public void setDeliveryAddress(String deliveryAddress) {
         this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getPreferredDeliverySlot() {
+        return preferredDeliverySlot;
+    }
+
+    public void setPreferredDeliverySlot(String preferredDeliverySlot) {
+        this.preferredDeliverySlot = preferredDeliverySlot;
+    }
+
+    public String getDeliveryNote() {
+        return deliveryNote;
+    }
+
+    public void setDeliveryNote(String deliveryNote) {
+        this.deliveryNote = deliveryNote;
     }
 }

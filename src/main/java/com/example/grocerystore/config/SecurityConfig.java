@@ -19,7 +19,6 @@ public class SecurityConfig {
         http
                 .authorizeRequests(auth -> auth
                         .antMatchers("/admin/**").hasRole("ADMIN")
-                        .antMatchers("/payments/**").hasRole("ADMIN")
                         .antMatchers("/", "/products/**", "/cart/**", "/checkout", "/track", "/orders/**", "/css/**", "/images/**").permitAll()
                         .anyRequest().permitAll()
                 )

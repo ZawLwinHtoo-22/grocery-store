@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,16 +18,46 @@
             <h1 class="h3 fw-bold mb-1">Admin Dashboard</h1>
             <p class="text-secondary mb-0">Approve stock, verify payments, and keep rice and oil pricing current.</p>
         </div>
-        <div class="btn-group flex-wrap">
-            <a class="btn btn-outline-secondary" th:classappend="${selectedStatus == null} ? 'active' : ''" th:href="@{/admin/dashboard}">All</a>
-            <a class="btn btn-outline-secondary" th:each="status : ${statuses}"
-               th:classappend="${selectedStatus == status} ? 'active' : ''"
-               th:href="@{/admin/dashboard(status=${status})}" th:text="${status.label}">Status</a>
+        <div class="d-flex gap-2 align-items-center">
+            <form class="d-flex gap-2 align-items-center" method="get" th:action="@{/admin/dashboard}">
+                <input type="date" name="from" class="form-control form-control-sm" th:value="${analyticsRangeStart != null ? #temporals.format(analyticsRangeStart, 'yyyy-MM-dd') : ''}">
+                                <input type="date" name="to" class="form-control form-control-sm" th:value="${analyticsRangeEnd != null ? #temporals.format(analyticsRangeEnd, 'yyyy-MM-dd') : ''}">
+                <button class="btn btn-outline-primary btn-sm" type="submit">Filter</button>
+            </form>
+            <form th:action="@{/admin/reports/monthly}" method="get">
+                <input type="month" name="month" class="form-control form-control-sm" style="width:180px">
+                <button class="btn btn-success btn-sm" type="submit">Export Monthly Sales Report</button>
+            </form>
         </div>
     </div>
 
     <div class="row g-4">
         <section class="col-xl-8">
+            <div class="admin-panel mb-3">
+                <h2 class="h5 fw-bold mb-2">Sales Overview</h2>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="p-3 border rounded">
+                        <div class="small text-secondary">Total Revenue</div>
+                        <div class="h5 fw-bold" th:text="${analytics.revenue}">0</div>
+                    </div>
+                    <div class="p-3 border rounded">
+                        <div class="small text-secondary">Total Orders</div>
+                        <div class="h5 fw-bold" th:text="${analytics.orderCount}">0</div>
+                    </div>
+                    <div class="p-3 border rounded">
+                        <div class="small text-secondary">Top Product</div>
+                        <div class="h6" th:if="${#lists.isEmpty(analytics.topProducts)}">None</div>
+                        <div class="h6" th:unless="${#lists.isEmpty(analytics.topProducts)}" th:text="${analytics.topProducts[0].productName + ' (' + analytics.topProducts[0].quantity + ')'}">-</div>
+                    </div>
+                    <div class="p-3 border rounded">
+                        <div class="small text-secondary">Payment Distribution</div>
+                        <div class="small" th:each="entry : ${analytics.paymentDistribution.entrySet()}">
+                            <span th:text="${entry.key}"></span>: <span th:text="${entry.value}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="admin-panel">
                 <h2 class="h5 fw-bold mb-3">Orders</h2>
                 <div class="table-responsive">
@@ -40,6 +70,7 @@
                             <th>Total</th>
                             <th>Status</th>
                             <th>Payment</th>
+                            <th>Preferred Slot</th>
                             <th class="text-end">Action</th>
                         </tr>
                         </thead>
@@ -56,11 +87,15 @@
                                     <span th:text="${item.product.name}">Product</span> x <span th:text="${item.quantity}">1</span>
                                 </div>
                             </td>
-                            <td><span th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')}">0</span> MMK</td>
-                            <td><span class="badge text-bg-light border" th:text="${order.status.label}">Status</span></td>
+                            <td><span class="price" th:text="${@currency.format(order.totalAmount, #locale)}">0</span></td>
+                            <td><span class="badge text-bg-light border" th:text="#{${'status.' + order.status.name()}}">Status</span></td>
                             <td>
                                 <a th:if="${order.paymentScreenshotPath}" th:href="@{${order.paymentScreenshotPath}}" target="_blank">View</a>
                                 <span th:unless="${order.paymentScreenshotPath}" class="text-secondary">None</span>
+                            </td>
+                            <td>
+                                <span th:if="${order.preferredDeliverySlot}" th:text="${order.preferredDeliverySlot}"></span>
+                                <span th:unless="${order.preferredDeliverySlot}" class="text-secondary">None</span>
                             </td>
                             <td class="text-end">
                                 <form th:if="${order.status.name() == 'PENDING_APPROVAL'}" th:action="@{/admin/orders/{id}/approve(id=${order.id})}" method="post">
@@ -132,7 +167,7 @@
                     <div class="flex-grow-1">
                         <div class="fw-semibold" th:text="${product.name}">Product</div>
                         <div class="small text-secondary">
-                            <span th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}">0</span> MMK /
+                            <span class="price" th:text="${@currency.format(product.price, #locale)}">0</span> /
                             <span th:text="${product.unitLabel}">unit</span>
                         </div>
                         <span class="badge" th:classappend="${product.available} ? 'text-bg-success' : 'text-bg-secondary'"

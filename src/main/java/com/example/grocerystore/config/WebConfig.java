@@ -10,15 +10,8 @@ import java.nio.file.Path;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final String paymentUploadDir;
-
-    public WebConfig(@Value("${app.uploads.payment-dir}") String paymentUploadDir) {
-        this.paymentUploadDir = paymentUploadDir;
+    public WebConfig() {
     }
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        String location = Path.of(paymentUploadDir).toAbsolutePath().normalize().toUri().toString();
-        registry.addResourceHandler("/payments/**").addResourceLocations(location);
-    }
+    // No resource handlers for /payments/** are registered — uploaded images are served from Cloudinary URLs.
 }

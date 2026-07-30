@@ -1,0 +1,76 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Order Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<main class="container py-4">
+    <div class="row g-4">
+        <div class="col-12">
+            <h1 class="h4">Order Details</h1>
+            <p class="text-secondary">Tracking Code: <strong th:text="${order.trackingCode}"></strong></p>
+        </div>
+
+        <div class="col-md-8">
+            <div class="summary-panel mb-3">
+                <h2 class="h6">Items</h2>
+                <div th:each="item : ${order.items}" class="border-bottom py-2">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <strong th:text="${item.product.name}"></strong>
+                            <div class="small text-secondary">x <span th:text="${item.quantity}"></span> · <span th:text="${item.product.unitLabel}"></span></div>
+                        </div>
+                        <div>
+                            <strong class="price" th:text="${@currency.format(item.lineTotal, #locale)}"></strong>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between pt-3">
+                                    <span th:text="#{order.total}">Total</span>
+                                    <strong class="price" th:text="${@currency.format(order.totalAmount, #locale)}"></strong>
+                </div>
+            </div>
+
+            <div class="summary-panel mb-3">
+                <h2 class="h6">Shipping & Contact</h2>
+                <div>Phone: <strong th:text="${order.phoneNumber}"></strong></div>
+                <div>Address: <div th:text="${order.deliveryAddress}"></div></div>
+                <div class="mt-2">Preferred delivery: <strong th:text="${order.preferredDeliverySlot != null && !#strings.isEmpty(order.preferredDeliverySlot) ? order.preferredDeliverySlot : (order.deliveryNote != null ? order.deliveryNote : 'None')}"></strong></div>
+            </div>
+
+            <div class="summary-panel mb-3">
+                <h2 class="h6">Payment</h2>
+                <div>Status: <strong th:text="#{${'status.' + order.status.name()}}"></strong></div>
+                <div th:if="${order.paymentScreenshotPath}" class="mt-2">
+                    <div>Receipt:</div>
+                    <a th:href="${order.paymentScreenshotPath}" target="_blank"><img th:src="${order.paymentScreenshotPath}" alt="Receipt" style="max-width:320px; height:auto;"></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="summary-panel">
+                <h2 class="h6">Order Summary</h2>
+                <div>Order ID: <strong th:text="${order.id}"></strong></div>
+                <div>Tracking: <strong th:text="${order.trackingCode}"></strong></div>
+                <div>Placed: <strong th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy HH:mm')}"></strong></div>
+                <div class="mt-3">
+                    <a class="btn btn-outline-secondary" th:href="@{/orders/history}">Back to history</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

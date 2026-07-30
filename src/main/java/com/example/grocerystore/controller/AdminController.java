@@ -28,16 +28,33 @@ public class AdminController {
     private final ProductService productService;
     private final OrderService orderService;
     private final CloudinaryService cloudinaryService;
+    private final com.example.grocerystore.service.ReportService reportService;
 
-    public AdminController(ProductService productService, OrderService orderService, CloudinaryService cloudinaryService) {
+    public AdminController(ProductService productService, OrderService orderService, CloudinaryService cloudinaryService, com.example.grocerystore.service.ReportService reportService) {
         this.productService = productService;
         this.orderService = orderService;
         this.cloudinaryService = cloudinaryService;
+        this.reportService = reportService;
     }
 
     @GetMapping({"", "/dashboard"})
-    public String dashboard(@RequestParam(required = false) OrderStatus status, Model model) {
+    public String dashboard(@RequestParam(required = false) OrderStatus status,
+                            @RequestParam(required = false) String from,
+                            @RequestParam(required = false) String to,
+                            Model model) {
         addDashboardModel(model, status, new Product());
+        // default date range: last 30 days
+        java.time.LocalDateTime end = java.time.LocalDateTime.now();
+        java.time.LocalDateTime start = end.minusDays(30);
+        if (from != null && !from.isBlank()) {
+            start = java.time.LocalDate.parse(from).atStartOfDay();
+        }
+        if (to != null && !to.isBlank()) {
+            end = java.time.LocalDate.parse(to).plusDays(1).atStartOfDay().minusNanos(1);
+        }
+        model.addAttribute("analyticsRangeStart", start);
+        model.addAttribute("analyticsRangeEnd", end);
+        model.addAttribute("analytics", reportService.salesOverview(start, end));
         return "admin/admin-dashboard";
     }
 

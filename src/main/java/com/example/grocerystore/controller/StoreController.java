@@ -60,17 +60,30 @@ public class StoreController {
     }
 
     @PostMapping("/cart/add/{productId}")
-    public String addToCart(@PathVariable Long productId,
+    public Object addToCart(@PathVariable Long productId,
                             @RequestParam(defaultValue = "1") int quantity,
                             HttpSession session,
+                            javax.servlet.http.HttpServletRequest request,
                             RedirectAttributes redirectAttributes) {
+        boolean isAjax = "XMLHttpRequest".equalsIgnoreCase(request.getHeader("X-Requested-With"));
         try {
             cartService.addToCart(productId, quantity, session);
-            redirectAttributes.addFlashAttribute("success", "Product added to cart.");
+            int cartCount = cartService.getCart(session).getItemCount();
+            if (isAjax) {
+                return org.springframework.http.ResponseEntity.ok(
+                    java.util.Map.of("success", true, "cartCount", cartCount)
+                );
+            }
+            return "redirect:/";
         } catch (IllegalArgumentException ex) {
+            if (isAjax) {
+                return org.springframework.http.ResponseEntity.badRequest().body(
+                    java.util.Map.of("success", false, "message", ex.getMessage())
+                );
+            }
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
+            return "redirect:/";
         }
-        return "redirect:/";
     }
 
     @GetMapping("/cart")
@@ -170,5 +183,49 @@ public class StoreController {
     @GetMapping("/login")
     public String login() {
         return "login";
+    }
+
+    // Dedicated order detail view accessible to customers and admins
+    @GetMapping("/orders/detail/{trackingCode}")
+    public String orderDetail(@PathVariable String trackingCode, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("order", orderService.findWithItemsByTrackingCode(trackingCode));
+            return "order-detail";
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("error", "Order မတွေ့ပါ။ Tracking code ကို ပြန်စစ်ပေးပါ။");
+            return "redirect:/track";
+        }
+    }
+
+    @GetMapping("/orders/history")
+    public String orderHistoryForm() {
+        return "order-history";
+    }
+
+    @PostMapping("/orders/history/search")
+    public String orderHistorySearch(@RequestParam(required = false) String trackingCode,
+                                     @RequestParam(required = false) String phoneNumber,
+                                     Model model,
+                                     RedirectAttributes redirectAttributes) {
+        if ((trackingCode == null || trackingCode.isBlank()) && (phoneNumber == null || phoneNumber.isBlank())) {
+            redirectAttributes.addFlashAttribute("error", "Please provide a tracking code or phone number.");
+            return "redirect:/orders/history";
+        }
+
+        if (trackingCode != null && !trackingCode.isBlank()) {
+            try {
+                CustomerOrder order = orderService.findWithItemsByTrackingCode(trackingCode.trim());
+                return "redirect:/orders/detail/" + order.getTrackingCode();
+            } catch (IllegalArgumentException ex) {
+                redirectAttributes.addFlashAttribute("error", "Order မတွေ့ပါ။ Tracking code ကို ပြန်စစ်ပေးပါ။");
+                return "redirect:/orders/history";
+            }
+        }
+
+        // search by phone number
+        java.util.List<CustomerOrder> orders = orderService.findByPhoneNumber(phoneNumber.trim());
+        model.addAttribute("orders", orders);
+        model.addAttribute("phone", phoneNumber.trim());
+        return "order-history";
     }
 }

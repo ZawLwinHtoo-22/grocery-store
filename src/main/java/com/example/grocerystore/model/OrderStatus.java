@@ -4,7 +4,10 @@ public enum OrderStatus {
     PENDING_APPROVAL("Pending Approval"),
     WAITING_FOR_PAYMENT("Waiting For Payment"),
     PAYMENT_SUBMITTED("Payment Submitted"),
-    COMPLETED("Completed");
+    PROCESSING("Processing"),
+    OUT_FOR_DELIVERY("Out For Delivery"),
+    COMPLETED("Completed"),
+    CANCELLED("Cancelled");
 
     private final String label;
 
