@@ -77,10 +77,7 @@
                                                     <option value="Custom" th:text="#{checkout.slot.custom}">Custom (see note)</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="deliveryNote" th:text="#{checkout.deliveryNote}">Delivery Note / Custom Time</label>
-                                                <textarea id="deliveryNote" class="form-control" th:field="*{deliveryNote}" th:placeholder="#{checkout.deliveryNote.placeholder}" rows="2"></textarea>
-                    </div>
+                   
                     <div class="mb-3">
                         <label class="form-label" for="customerName" th:text="#{checkout.customerName}">Name</label>
                         <input id="customerName" class="form-control" th:field="*{customerName}" required>
@@ -95,6 +92,10 @@
                         <label class="form-label" for="deliveryAddress" th:text="#{checkout.deliveryAddress}">Delivery Address</label>
                         <textarea id="deliveryAddress" class="form-control" rows="4" th:field="*{deliveryAddress}" required></textarea>
                         <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('deliveryAddress')}" th:errors="*{deliveryAddress}"></div>
+                    </div>
+                     <div class="mb-3">
+                        <label class="form-label" for="deliveryNote" th:text="#{checkout.deliveryNote}">Remark</label>
+                                                <textarea id="deliveryNote" class="form-control" th:field="*{deliveryNote}" th:placeholder="#{checkout.deliveryNote.placeholder}" rows="2"></textarea>
                     </div>
                     <button class="btn btn-success btn-lg w-100" type="submit" th:disabled="${cart.empty}">
                         <i class="bi bi-send-check" aria-hidden="true"></i>

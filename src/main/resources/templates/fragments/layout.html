@@ -1,23 +1,30 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security" th:lang="${#locale.language}">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      th:lang="${#locale.language}">
 <body>
-<nav th:fragment="navbar" class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+
+<!-- ── Navbar ──────────────────────────────────────────────────── -->
+<nav th:fragment="navbar" class="navbar navbar-expand-lg sticky-top">
     <div class="container">
         <a class="navbar-brand fw-bold text-success" th:href="@{/}">
-            <span class="brand-mark">R&O</span>
-            Rice & Oil Store
+            <span class="brand-mark">R&amp;O</span>
+            Rice &amp; Oil Store
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav"
                 aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div id="mainNav" class="collapse navbar-collapse">
-            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/}" th:text="#{nav.products}">Products</a>
+                    <a class="nav-link fw-medium" th:href="@{/}" th:text="#{nav.products}">Products</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" th:href="@{/track}" th:text="#{nav.track}">Track Order</a>
+                    <a class="nav-link fw-medium" th:href="@{/orders/history}" th:text="#{nav.orderHistory}">Order History</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link fw-medium" th:href="@{/track}" th:text="#{nav.track}">Track Order</a>
                 </li>
                 <li class="nav-item">
                     <a class="btn btn-outline-success btn-sm nav-cart-btn" th:href="@{/cart}" aria-label="Open cart">
@@ -34,18 +41,20 @@
                     </div>
                 </li>
                 <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link" th:href="@{/admin/dashboard}">Admin</a>
+                    <a class="btn btn-dark btn-sm ms-1" th:href="@{/admin/dashboard}">
+                        <i class="bi bi-speedometer2"></i> Admin
+                    </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAnonymous()">
-                    <a class="staff-link" th:href="@{/login}" aria-label="Staff portal">
+                    <a class="staff-link ms-1" th:href="@{/login}" aria-label="Staff portal">
                         <i class="bi bi-shield-lock" aria-hidden="true"></i>
                         <span th:text="#{nav.staff}">Staff</span>
                     </a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <form th:action="@{/logout}" method="post">
+                    <form th:action="@{/logout}" method="post" class="mb-0">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                        <button class="btn btn-link nav-link" type="submit" th:text="#{nav.logout}">Logout</button>
+                        <button class="btn btn-link nav-link fw-medium text-danger p-0" type="submit" th:text="#{nav.logout}">Logout</button>
                     </form>
                 </li>
             </ul>
@@ -53,22 +62,96 @@
     </div>
 </nav>
 
+<!-- ── Alerts ───────────────────────────────────────────────────── -->
 <div th:fragment="alerts" class="container mt-3">
-    <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <div th:if="${success}" class="alert alert-success alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
         <span th:text="${success}">Success</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
-    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+        <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
         <span th:text="${error}">Error</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 </div>
 
+<!-- ── 5-Step Stepper Fragment ───────────────────────────────────── -->
+<!-- Usage: <div th:replace="~{fragments/layout :: orderStepper(order=${order})}"></div> -->
+<div th:fragment="orderStepper(order)">
+    <div th:if="${order.status.name() == 'CANCELLED'}" class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-x-circle-fill flex-shrink-0 fs-5"></i>
+        <div><strong>Order Cancelled.</strong> This order has been cancelled. Please contact us if this was a mistake.</div>
+    </div>
+    <div th:unless="${order.status.name() == 'CANCELLED'}" class="order-stepper" aria-label="Order progress">
+
+        <!-- Step 1: Order Placed -->
+        <div th:with="done=${order.status.name() != 'PENDING_APPROVAL'},
+                      active=${order.status.name() == 'PENDING_APPROVAL'}"
+             class="stepper-step"
+             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
+            <div class="stepper-icon">
+                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-bag-check'}"></i>
+            </div>
+            <div class="stepper-label">Order Placed</div>
+            <div class="stepper-sublabel">Pending approval</div>
+        </div>
+
+        <!-- Step 2: Payment Approved -->
+        <div th:with="done=${#lists.contains({'PAYMENT_SUBMITTED','PROCESSING','OUT_FOR_DELIVERY','COMPLETED'}, order.status.name())},
+                      active=${order.status.name() == 'WAITING_FOR_PAYMENT'}"
+             class="stepper-step"
+             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
+            <div class="stepper-icon">
+                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-shield-check'}"></i>
+            </div>
+            <div class="stepper-label">Approved</div>
+            <div class="stepper-sublabel">Await payment</div>
+        </div>
+
+        <!-- Step 3: Payment Received -->
+        <div th:with="done=${#lists.contains({'PROCESSING','OUT_FOR_DELIVERY','COMPLETED'}, order.status.name())},
+                      active=${order.status.name() == 'PAYMENT_SUBMITTED'}"
+             class="stepper-step"
+             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
+            <div class="stepper-icon">
+                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-credit-card'}"></i>
+            </div>
+            <div class="stepper-label">Payment</div>
+            <div class="stepper-sublabel">Under review</div>
+        </div>
+
+        <!-- Step 4: Processing / Out for Delivery -->
+        <div th:with="done=${order.status.name() == 'COMPLETED'},
+                      active=${order.status.name() == 'PROCESSING' || order.status.name() == 'OUT_FOR_DELIVERY'}"
+             class="stepper-step"
+             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
+            <div class="stepper-icon">
+                <i th:class="${done ? 'bi bi-check-lg' : (order.status.name() == 'OUT_FOR_DELIVERY' ? 'bi bi-truck' : 'bi bi-box-seam')}"></i>
+            </div>
+            <div class="stepper-label">In Delivery</div>
+            <div class="stepper-sublabel" th:text="${order.status.name() == 'OUT_FOR_DELIVERY' ? 'Out for delivery' : 'Packing'}">Packing</div>
+        </div>
+
+        <!-- Step 5: Delivered -->
+        <div th:with="active=${order.status.name() == 'COMPLETED'}"
+             class="stepper-step"
+             th:classappend="${active ? 'done' : ''}">
+            <div class="stepper-icon">
+                <i th:class="${active ? 'bi bi-check-circle-fill' : 'bi bi-house-check'}"></i>
+            </div>
+            <div class="stepper-label">Delivered</div>
+            <div class="stepper-sublabel">Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── Footer ────────────────────────────────────────────────────── -->
 <footer th:fragment="footer" class="site-footer mt-5">
     <div class="container py-4">
         <div class="row g-4">
             <div class="col-md-5">
-                <h2 class="h5 fw-bold" th:text="#{footer.about}">Rice & Oil Store</h2>
+                <h2 class="h5 fw-bold" th:text="#{footer.about}">Rice &amp; Oil Store</h2>
                 <p class="mb-2" th:text="#{footer.aboutText}">Fresh rice and cooking oil with admin-confirmed stock before payment.</p>
                 <p class="footer-contact mb-0">Phone: 09 96 2800 540</p>
                 <p class="footer-contact mb-0">Delivery: Shwe Pyi Thar</p>
@@ -77,6 +160,7 @@
                 <h3 class="h6 fw-bold" th:text="#{footer.quick}">Quick Links</h3>
                 <ul class="list-unstyled footer-links">
                     <li><a th:href="@{/}" th:text="#{nav.products}">Products</a></li>
+                    <li><a th:href="@{/orders/history}" th:text="#{nav.orderHistory}">Order History</a></li>
                     <li><a th:href="@{/track}" th:text="#{nav.track}">Track Order</a></li>
                     <li><a th:href="@{/cart}" th:text="#{nav.cart}">Cart</a></li>
                     <li><a th:href="@{/login}" th:text="#{nav.staff}">Staff Portal</a></li>
@@ -94,151 +178,102 @@
         </div>
         <div class="footer-bottom mt-4 pt-3">
             <span>Current prices are shown before checkout.</span>
-            <span>© 2026 Rice & Oil Store</span>
+            <span>© 2026 Rice &amp; Oil Store</span>
         </div>
     </div>
 
-   <!-- Floating cart button (Only rendered for non-admin/customer views) -->
-<div id="floatingCart" sec:authorize="!hasRole('ADMIN')" style="position:fixed;right:16px;bottom:16px;z-index:1050;">
-    <a th:href="@{/cart}" id="floatingCartBtn" class="btn btn-success rounded-circle shadow-lg" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;position:relative;text-decoration:none;" aria-label="View Cart">
-        <i class="bi bi-cart3" style="font-size:20px;color:#fff"></i>
-        <span id="floatingCartBadge" class="badge text-bg-danger" style="position:absolute;top:4px;right:4px;display:none;">0</span>
-    </a>
-</div>
+    <!-- Floating cart button -->
+    <div id="floatingCart" sec:authorize="!hasRole('ADMIN')" style="position:fixed;right:18px;bottom:18px;z-index:1050;">
+        <a th:href="@{/cart}" id="floatingCartBtn"
+           class="btn btn-success rounded-circle shadow-lg"
+           style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;position:relative;text-decoration:none;"
+           aria-label="View Cart">
+            <i class="bi bi-cart3" style="font-size:20px;color:#fff"></i>
+            <span id="floatingCartBadge" class="badge text-bg-danger"
+                  style="position:absolute;top:2px;right:2px;display:none;font-size:.65rem;min-width:18px;height:18px;line-height:18px;padding:0 4px;border-radius:50px;">0</span>
+        </a>
+    </div>
 
-<!-- Toast container -->
-<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1060">
-    <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">Item added to cart!</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    <!-- Toast container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1060;">
+        <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi bi-cart-check-fill"></i> Item added to cart!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    (function(){
-        // Get cart count endpoint
-        async function fetchCartCount() {
-            try {
-                const res = await fetch('/cart/count');
-                if (!res.ok) return;
-                const data = await res.json();
-                updateBadge(data.count || 0);
-            } catch (e) {
-                console.error('Failed to fetch cart count', e);
+    <script>
+        (function(){
+            async function fetchCartCount() {
+                try {
+                    const res = await fetch('/cart/count');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    updateBadge(data.count || 0);
+                } catch (e) { /* silent */ }
             }
-        }
 
-        function updateBadge(count) {
-            const badge = document.getElementById('floatingCartBadge');
-            if (badge) {
-                badge.textContent = count;
-                badge.style.display = count > 0 ? 'inline-block' : 'none';
-            }
-            // update navbar badge if present
-            document.querySelectorAll('.nav-cart-btn .badge').forEach(b => {
-                b.textContent = count;
-                b.style.display = count > 0 ? 'inline-block' : 'none';
-            });
-        }
-
-        // Delegate add-to-cart: use event delegation so handlers work even if script runs before forms are added
-        async function handleAddToCartFormSubmission(form){
-            // include CSRF token header if available (search for hidden input containing 'csrf' in name)
-            const fd = new FormData(form);
-            let headers = {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'};
-            try {
-                const hiddenInputs = form.querySelectorAll('input[type="hidden"]');
-                for (const inp of hiddenInputs) {
-                    const name = (inp.getAttribute('name') || '').toLowerCase();
-                    if (name.includes('csrf')) {
-                        const token = inp.value;
-                        if (token) headers['X-CSRF-TOKEN'] = token;
-                        break;
-                    }
+            function updateBadge(count) {
+                const badge = document.getElementById('floatingCartBadge');
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = count > 0 ? 'inline-block' : 'none';
                 }
-            } catch(e){ /* ignore */ }
-
-            try {
-                const res = await fetch(form.action, {
-                    method: form.method || 'POST',
-                    headers: headers,
-                    body: fd
+                document.querySelectorAll('.nav-cart-btn .badge').forEach(b => {
+                    b.textContent = count;
+                    b.style.display = count > 0 ? 'inline-block' : 'none';
                 });
-                
-                let newCartCount = null;
-                if (res.ok) {
-                    try {
-                        const data = await res.json();
-                        if (data && typeof data.cartCount === 'number') {
-                            newCartCount = data.cartCount;
+            }
+
+            async function handleAddToCartFormSubmission(form) {
+                const fd = new FormData(form);
+                let headers = {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'};
+                try {
+                    form.querySelectorAll('input[type="hidden"]').forEach(inp => {
+                        if ((inp.getAttribute('name') || '').toLowerCase().includes('csrf')) {
+                            headers['X-CSRF-TOKEN'] = inp.value;
                         }
-                    } catch(ex){ /* non-json fallback */ }
-                }
+                    });
+                } catch(e){}
 
-                // show toast notification
-                const toastEl = document.getElementById('cartToast');
-                if (toastEl) {
-                    const toast = new bootstrap.Toast(toastEl);
-                    toast.show();
-                }
-
-                // Update count dynamically
-                if (newCartCount !== null) {
-                    updateBadge(newCartCount);
-                } else {
-                    await fetchCartCount();
-                }
-
-                // Pulse floating button
-                const btn = document.getElementById('floatingCartBtn');
-                if (btn) {
-                    btn.classList.add('floating-pulse');
-                    setTimeout(()=> btn.classList.remove('floating-pulse'), 500);
-                }
-            } catch (err) {
-                console.error('Add to cart failed', err);
+                try {
+                    const res = await fetch(form.action, { method: form.method || 'POST', headers, body: fd });
+                    let newCount = null;
+                    if (res.ok) {
+                        try {
+                            const data = await res.json();
+                            if (data && typeof data.cartCount === 'number') newCount = data.cartCount;
+                        } catch(ex){}
+                    }
+                    const toastEl = document.getElementById('cartToast');
+                    if (toastEl) new bootstrap.Toast(toastEl).show();
+                    if (newCount !== null) updateBadge(newCount);
+                    else await fetchCartCount();
+                    const btn = document.getElementById('floatingCartBtn');
+                    if (btn) { btn.classList.add('floating-pulse'); setTimeout(()=>btn.classList.remove('floating-pulse'), 450); }
+                } catch(err) { console.error('Add to cart failed', err); }
             }
-        }
 
-        // Delegated submit listener - use includes() to match action path regardless of query params or prefix
-        document.addEventListener('submit', function(e){
-            try {
-                const form = e.target;
-                if (!form || !form.action) return;
-                // handle cases where lang or other query params may alter the action attribute ordering
-                const action = form.getAttribute('action') || form.action || '';
-                if (action.includes('/cart/add/')){
-                    e.preventDefault();
-                    handleAddToCartFormSubmission(form);
-                }
-            } catch(ex) {
-                console.error(ex);
-            }
-        });
-
-        // Convenience function to call from buttons (progressive enhancement)
-        window.addToCartSubmit = function(form){
-            if (!form) return;
-            handleAddToCartFormSubmission(form);
-        };
-
-        // Floating cart button click behaviour fallback
-        const floatingCartBtn = document.getElementById('floatingCartBtn');
-        if (floatingCartBtn) {
-            floatingCartBtn.addEventListener('click', function(e){
-                const href = this.getAttribute('href');
-                if (href) {
-                    window.location.href = href;
-                }
+            document.addEventListener('submit', function(e){
+                try {
+                    const form = e.target;
+                    if (!form || !form.action) return;
+                    if ((form.getAttribute('action') || '').includes('/cart/add/')) {
+                        e.preventDefault();
+                        handleAddToCartFormSubmission(form);
+                    }
+                } catch(ex){ console.error(ex); }
             });
-        }
 
-        // Initial actions
-        fetchCartCount();
-    })();
-</script>
+            window.addToCartSubmit = function(form){ if (form) handleAddToCartFormSubmission(form); };
+
+            fetchCartCount();
+        })();
+    </script>
 </footer>
 
 </body>

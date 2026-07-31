@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard — Rice &amp; Oil Store</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
@@ -13,105 +13,255 @@
 <div th:replace="~{fragments/layout :: alerts}"></div>
 
 <main class="container-fluid admin-shell py-4">
-    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-end mb-4">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center mb-4">
         <div>
             <h1 class="h3 fw-bold mb-1">Admin Dashboard</h1>
-            <p class="text-secondary mb-0">Approve stock, verify payments, and keep rice and oil pricing current.</p>
+            <p class="text-secondary mb-0">Manage orders, products, and view sales analytics.</p>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-            <form class="d-flex gap-2 align-items-center" method="get" th:action="@{/admin/dashboard}">
-                <input type="date" name="from" class="form-control form-control-sm" th:value="${analyticsRangeStart != null ? #temporals.format(analyticsRangeStart, 'yyyy-MM-dd') : ''}">
-                                <input type="date" name="to" class="form-control form-control-sm" th:value="${analyticsRangeEnd != null ? #temporals.format(analyticsRangeEnd, 'yyyy-MM-dd') : ''}">
-                <button class="btn btn-outline-primary btn-sm" type="submit">Filter</button>
-            </form>
-            <form th:action="@{/admin/reports/monthly}" method="get">
-                <input type="month" name="month" class="form-control form-control-sm" style="width:180px">
-                <button class="btn btn-success btn-sm" type="submit">Export Monthly Sales Report</button>
+        <div class="d-flex gap-2 flex-wrap">
+            <form th:action="@{/admin/reports/monthly}" method="get" class="d-flex gap-2 align-items-center">
+                <input type="month" name="month" class="form-control form-control-sm" style="width:175px">
+                <button class="btn btn-outline-success btn-sm" type="submit">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Export Sales
+                </button>
             </form>
         </div>
     </div>
 
-    <div class="row g-4">
-        <section class="col-xl-8">
-            <div class="admin-panel mb-3">
-                <h2 class="h5 fw-bold mb-2">Sales Overview</h2>
-                <div class="d-flex gap-3 flex-wrap">
-                    <div class="p-3 border rounded">
-                        <div class="small text-secondary">Total Revenue</div>
-                        <div class="h5 fw-bold" th:text="${analytics.revenue}">0</div>
-                    </div>
-                    <div class="p-3 border rounded">
-                        <div class="small text-secondary">Total Orders</div>
-                        <div class="h5 fw-bold" th:text="${analytics.orderCount}">0</div>
-                    </div>
-                    <div class="p-3 border rounded">
-                        <div class="small text-secondary">Top Product</div>
-                        <div class="h6" th:if="${#lists.isEmpty(analytics.topProducts)}">None</div>
-                        <div class="h6" th:unless="${#lists.isEmpty(analytics.topProducts)}" th:text="${analytics.topProducts[0].productName + ' (' + analytics.topProducts[0].quantity + ')'}">-</div>
-                    </div>
-                    <div class="p-3 border rounded">
-                        <div class="small text-secondary">Payment Distribution</div>
-                        <div class="small" th:each="entry : ${analytics.paymentDistribution.entrySet()}">
-                            <span th:text="${entry.key}"></span>: <span th:text="${entry.value}"></span>
-                        </div>
-                    </div>
+    <!-- ── Analytics Cards ─────────────────────────────────────────── -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="analytics-card d-flex align-items-center gap-3">
+                <div class="analytics-icon green"><i class="bi bi-cash-stack"></i></div>
+                <div>
+                    <div class="analytics-label">Revenue (30d)</div>
+                    <div class="analytics-value price" th:text="${analytics.revenue != null ? @currency.format(analytics.revenue, #locale) : '0'}">0</div>
                 </div>
             </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="analytics-card d-flex align-items-center gap-3">
+                <div class="analytics-icon gold"><i class="bi bi-bag-check"></i></div>
+                <div>
+                    <div class="analytics-label">Orders (30d)</div>
+                    <div class="analytics-value" th:text="${analytics.orderCount}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="analytics-card d-flex align-items-center gap-3">
+                <div class="analytics-icon blue"><i class="bi bi-trophy"></i></div>
+                <div>
+                    <div class="analytics-label">Top Product</div>
+                    <div class="analytics-value h6 mb-0 fw-bold"
+                         th:text="${!#lists.isEmpty(analytics.topProducts) ? analytics.topProducts[0].productName : 'None'}">-</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="analytics-card">
+                <div class="analytics-label mb-2">Payment Channels</div>
+                <div th:if="${#maps.isEmpty(analytics.paymentDistribution)}" class="small text-secondary">No data</div>
+                <div th:each="entry : ${analytics.paymentDistribution.entrySet()}" class="d-flex justify-content-between small">
+                    <span th:text="${entry.key}"></span>
+                    <span class="fw-bold" th:text="${entry.value}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Analytics date range filter -->
+    <form class="d-flex gap-2 align-items-center mb-4 flex-wrap" method="get" th:action="@{/admin/dashboard}">
+        <input type="hidden" name="status" th:value="${selectedStatus}">
+        <input type="hidden" name="query" th:value="${searchQuery}">
+        <span class="small text-secondary fw-semibold">Analytics range:</span>
+        <input type="date" name="from" class="form-control form-control-sm" style="width:155px"
+               th:value="${analyticsRangeStart != null ? #temporals.format(analyticsRangeStart, 'yyyy-MM-dd') : ''}">
+        <input type="date" name="to" class="form-control form-control-sm" style="width:155px"
+               th:value="${analyticsRangeEnd != null ? #temporals.format(analyticsRangeEnd, 'yyyy-MM-dd') : ''}">
+        <button class="btn btn-outline-primary btn-sm" type="submit">Apply</button>
+    </form>
+
+    <div class="row g-4">
+
+        <!-- ── Orders Panel ──────────────────────────────────────────── -->
+        <section class="col-xl-8">
+
+            <!-- Status Tab Bar -->
+            <div class="status-tab-bar">
+                <a th:href="@{/admin/dashboard}" class="status-tab" th:classappend="${selectedStatus == null} ? ' active' : ''">All</a>
+                <a th:each="s : ${statuses}"
+                   th:href="@{/admin/dashboard(status=${s.name()})}"
+                   class="status-tab"
+                   th:classappend="${selectedStatus != null and selectedStatus.name() == s.name()} ? ' active' : ''"
+                   th:text="${s.label}">Status</a>
+            </div>
+
+            <!-- Multi-Criteria Search Bar -->
+            <form class="admin-search-bar mb-3" method="get" th:action="@{/admin/dashboard}">
+                <input type="hidden" name="status" th:value="${selectedStatus}">
+                <div class="input-group flex-grow-1" style="max-width:360px; min-width:200px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control" name="query" id="adminSearchQuery"
+                           placeholder="Search name, phone, or tracking code…"
+                           th:value="${searchQuery}">
+                </div>
+                <input type="date" name="from" class="form-control form-control-sm"
+                       th:value="${fromDate}">
+                <input type="date" name="to" class="form-control form-control-sm"
+                       th:value="${toDate}">
+                <button class="btn btn-primary btn-sm" type="submit">
+                    <i class="bi bi-funnel me-1"></i>Filter
+                </button>
+                <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-x-lg"></i> Clear
+                </a>
+            </form>
+
+            <!-- Orders Table -->
             <div class="admin-panel">
-                <h2 class="h5 fw-bold mb-3">Orders</h2>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 fw-bold mb-0">Orders
+                        <span class="badge bg-secondary ms-1" th:text="${#lists.size(orders)}">0</span>
+                    </h2>
+                </div>
                 <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
+                    <table class="table align-middle table-hover mb-0">
+                        <thead class="table-light">
                         <tr>
-                            <th>Order</th>
+                            <th style="width:60px">#</th>
                             <th>Customer</th>
                             <th>Items</th>
                             <th>Total</th>
                             <th>Status</th>
+                            <th>Slot / Note</th>
                             <th>Payment</th>
-                            <th>Preferred Slot</th>
-                            <th class="text-end">Action</th>
+                            <th class="text-end" style="min-width:200px">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="order : ${orders}">
-                            <td class="fw-semibold">#<span th:text="${order.id}">1</span></td>
+                        <tr th:each="order : ${orders}" class="order-table-row">
+                            <td class="fw-bold text-secondary">
+                                <span th:text="'#'+${order.id}">1</span>
+                                <div class="small text-muted" th:text="${#temporals.format(order.createdAt, 'dd MMM')}">date</div>
+                            </td>
                             <td>
-                                <div th:text="${order.customerName}">Name</div>
+                                <div class="fw-semibold" th:text="${order.customerName}">Name</div>
                                 <div class="small text-secondary" th:text="${order.phoneNumber}">Phone</div>
                                 <div class="small text-secondary address-cell" th:text="${order.deliveryAddress}">Address</div>
+                                <div class="small text-muted" th:text="${order.trackingCode}">tracking</div>
                             </td>
                             <td>
                                 <div class="small" th:each="item : ${order.items}">
-                                    <span th:text="${item.product.name}">Product</span> x <span th:text="${item.quantity}">1</span>
+                                    <span th:text="${item.product.name}">Prod</span> ×<span th:text="${item.quantity}">1</span>
                                 </div>
                             </td>
-                            <td><span class="price" th:text="${@currency.format(order.totalAmount, #locale)}">0</span></td>
-                            <td><span class="badge text-bg-light border" th:text="#{${'status.' + order.status.name()}}">Status</span></td>
-                            <td>
-                                <a th:if="${order.paymentScreenshotPath}" th:href="@{${order.paymentScreenshotPath}}" target="_blank">View</a>
-                                <span th:unless="${order.paymentScreenshotPath}" class="text-secondary">None</span>
+                            <td class="fw-bold">
+                                <span class="price" th:text="${@currency.format(order.totalAmount, #locale)}">0</span>
                             </td>
                             <td>
-                                <span th:if="${order.preferredDeliverySlot}" th:text="${order.preferredDeliverySlot}"></span>
-                                <span th:unless="${order.preferredDeliverySlot}" class="text-secondary">None</span>
+                                <span class="badge rounded-pill"
+                                      th:with="s=${order.status.name()}"
+                                      th:classappend="${s == 'COMPLETED' ? 'bg-success' :
+                                                      (s == 'CANCELLED' ? 'bg-danger' :
+                                                      (s == 'OUT_FOR_DELIVERY' ? 'bg-primary' :
+                                                      (s == 'PROCESSING' ? 'bg-info text-dark' :
+                                                      (s == 'PENDING_APPROVAL' ? 'bg-warning text-dark' :
+                                                      (s == 'PAYMENT_SUBMITTED' ? 'bg-purple' : 'bg-secondary')))))}"
+                                      th:text="#{${'status.' + order.status.name()}}">Status</span>
+                            </td>
+                            <td>
+                                <div class="small" th:if="${order.preferredDeliverySlot}" th:text="${order.preferredDeliverySlot}"></div>
+                                <div class="small text-secondary" th:if="${order.deliveryNote}" th:text="${order.deliveryNote}"></div>
+                                <span th:unless="${order.preferredDeliverySlot or order.deliveryNote}" class="text-secondary small">—</span>
+                            </td>
+                            <td>
+                                <a th:if="${order.paymentScreenshotPath}"
+                                   th:href="${order.paymentScreenshotPath}" target="_blank" rel="noopener"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-image me-1"></i>View
+                                </a>
+                                <span th:unless="${order.paymentScreenshotPath}" class="text-secondary small">None</span>
                             </td>
                             <td class="text-end">
-                                <form th:if="${order.status.name() == 'PENDING_APPROVAL'}" th:action="@{/admin/orders/{id}/approve(id=${order.id})}" method="post">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                    <button class="btn btn-sm btn-success" type="submit">Approve</button>
-                                </form>
-                                <form th:if="${order.status.name() == 'PAYMENT_SUBMITTED'}" th:action="@{/admin/orders/{id}/confirm(id=${order.id})}" method="post">
-                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                                    <button class="btn btn-sm btn-primary" type="submit">Confirm</button>
-                                </form>
-                                <span th:if="${order.status.name() == 'WAITING_FOR_PAYMENT'}" class="small text-secondary">Waiting payment</span>
-                                <span th:if="${order.status.name() == 'COMPLETED'}" class="small text-success">Completed</span>
+                                <div class="action-btn-group">
+
+                                    <!-- Approve (PENDING_APPROVAL) -->
+                                    <form th:if="${order.status.name() == 'PENDING_APPROVAL'}"
+                                          th:action="@{/admin/orders/{id}/approve(id=${order.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-success" type="submit">
+                                            <i class="bi bi-check-lg me-1"></i>Approve
+                                        </button>
+                                    </form>
+
+                                    <!-- Mark Processing (PAYMENT_SUBMITTED) -->
+                                    <form th:if="${order.status.name() == 'PAYMENT_SUBMITTED'}"
+                                          th:action="@{/admin/orders/{id}/processing(id=${order.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-info text-dark" type="submit">
+                                            <i class="bi bi-box-seam me-1"></i>Processing
+                                        </button>
+                                    </form>
+
+                                    <!-- Mark Out for Delivery (PROCESSING) -->
+                                    <form th:if="${order.status.name() == 'PROCESSING'}"
+                                          th:action="@{/admin/orders/{id}/out-for-delivery(id=${order.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-primary" type="submit">
+                                            <i class="bi bi-truck me-1"></i>Out for Delivery
+                                        </button>
+                                    </form>
+
+                                    <!-- Confirm Completed (PAYMENT_SUBMITTED or OUT_FOR_DELIVERY) -->
+                                    <form th:if="${order.status.name() == 'OUT_FOR_DELIVERY' || order.status.name() == 'PAYMENT_SUBMITTED'}"
+                                          th:action="@{/admin/orders/{id}/confirm(id=${order.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-success" type="submit"
+                                                onclick="return confirm('Mark this order as COMPLETED / Delivered?')">
+                                            <i class="bi bi-check-circle me-1"></i>Complete
+                                        </button>
+                                    </form>
+
+                                    <!-- View / Track link -->
+                                    <a th:href="@{/orders/detail/{code}(code=${order.trackingCode})}"
+                                       class="btn btn-sm btn-outline-secondary" target="_blank">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+
+                                    <!-- Cancel -->
+                                    <form th:unless="${order.status.name() == 'COMPLETED' || order.status.name() == 'CANCELLED'}"
+                                          th:action="@{/admin/orders/{id}/cancel(id=${order.id})}" method="post">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-outline-danger" type="submit"
+                                                onclick="return confirm('Cancel this order? This cannot be undone.')">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </form>
+
+                                    <!-- Completed / Cancelled labels -->
+                                    <span th:if="${order.status.name() == 'COMPLETED'}" class="small text-success fw-semibold">
+                                        <i class="bi bi-check-circle-fill"></i> Done
+                                    </span>
+                                    <span th:if="${order.status.name() == 'CANCELLED'}" class="small text-danger fw-semibold">
+                                        <i class="bi bi-x-circle-fill"></i> Cancelled
+                                    </span>
+                                    <span th:if="${order.status.name() == 'WAITING_FOR_PAYMENT'}" class="small text-secondary">
+                                        <i class="bi bi-hourglass-split"></i> Awaiting payment
+                                    </span>
+                                </div>
                             </td>
                         </tr>
+
+                        <!-- Empty state -->
                         <tr th:if="${#lists.isEmpty(orders)}">
-                            <td colspan="7" class="text-center text-secondary py-4">No orders found.</td>
+                            <td colspan="8" class="text-center py-5">
+                                <i class="bi bi-inbox display-5 text-secondary d-block mb-2"></i>
+                                <div class="text-secondary fw-semibold">No orders found.</div>
+                                <div class="small text-secondary">Try clearing the filters or search.</div>
+                            </td>
                         </tr>
                         </tbody>
                     </table>
@@ -119,34 +269,38 @@
             </div>
         </section>
 
+        <!-- ── Products Panel ────────────────────────────────────────── -->
         <section class="col-xl-4" id="products">
+
+            <!-- Add / Edit Product Form -->
             <div class="admin-panel mb-4">
-                <h2 class="h5 fw-bold" th:text="${editing} ? 'Edit Product' : 'Add Product'">Add Product</h2>
-                <form th:action="@{/admin/products}" th:object="${productForm}" method="post" enctype="multipart/form-data" >
+                <h2 class="h5 fw-bold mb-3" th:text="${editing} ? 'Edit Product' : 'Add Product'">Add Product</h2>
+                <form th:action="@{/admin/products}" th:object="${productForm}"
+                      method="post" enctype="multipart/form-data">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" th:field="*{id}">
                     <div class="mb-3">
-                        <label class="form-label" for="name">Name</label>
-                        <input id="name" class="form-control" th:field="*{name}" required>
+                        <label class="form-label fw-medium" for="name">Product Name</label>
+                        <input id="name" class="form-control" th:field="*{name}" placeholder="e.g. Jasmine Rice 25kg" required>
                         <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                     </div>
-                    <div class="row g-3">
+                    <div class="row g-3 mb-3">
                         <div class="col-sm-6">
-                            <label class="form-label" for="price">Price</label>
-                            <input id="price" class="form-control" th:field="*{price}" type="number" step="0.01" min="0" required>
+                            <label class="form-label fw-medium" for="price">Price (MMK)</label>
+                            <input id="price" class="form-control" th:field="*{price}"
+                                   type="number" step="0.01" min="0" required>
                         </div>
                         <div class="col-sm-6">
-                            <label class="form-label" for="unitLabel">Unit</label>
-                            <input id="unitLabel" class="form-control" th:field="*{unitLabel}" placeholder="25 kg bag">
+                            <label class="form-label fw-medium" for="unitLabel">Unit Label</label>
+                            <input id="unitLabel" class="form-control" th:field="*{unitLabel}"
+                                   placeholder="e.g. 25 kg bag">
                         </div>
                     </div>
-                    <!--<div class="my-3">
-                        <label class="form-label" for="imageUrl">Image URL</label>
-                        <input id="imageUrl" class="form-control" th:field="*{imageUrl}" required>
-                    </div>-->
-                    <div class="my-3">
-                        <label class="form-label" for="imageFile">Product Image</label>
-                        <input id="imageFile" type="file" name="imageFile" class="form-control" accept="image/*" th:required="${editing == null}">
+                    <div class="mb-3">
+                        <label class="form-label fw-medium" for="imageFile">Product Image</label>
+                        <input id="imageFile" type="file" name="imageFile" class="form-control"
+                               accept="image/*" th:required="${editing == null}">
+                        <div class="form-text">Uploaded to Cloudinary. Leave blank to keep existing image when editing.</div>
                     </div>
                     <input type="hidden" th:field="*{imageUrl}">
                     <div class="form-check form-switch mb-3">
@@ -154,37 +308,55 @@
                         <label class="form-check-label" for="available">Available in stock</label>
                     </div>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-success" type="submit">Save Product</button>
-                        <a th:if="${editing}" class="btn btn-outline-secondary" th:href="@{/admin/dashboard#products}">Cancel</a>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-floppy me-1"></i> Save Product
+                        </button>
+                        <a th:if="${editing}" class="btn btn-outline-secondary"
+                           th:href="@{/admin/dashboard#products}">Cancel</a>
                     </div>
                 </form>
             </div>
 
+            <!-- Product List -->
             <div class="admin-panel">
-                <h2 class="h5 fw-bold mb-3">Products</h2>
+                <h2 class="h5 fw-bold mb-3">Products
+                    <span class="badge bg-secondary ms-1" th:text="${#lists.size(products)}">0</span>
+                </h2>
                 <div class="product-admin-row" th:each="product : ${products}">
                     <img th:src="@{${product.imageUrl}}" th:alt="${product.name}">
-                    <div class="flex-grow-1">
-                        <div class="fw-semibold" th:text="${product.name}">Product</div>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fw-semibold text-truncate" th:text="${product.name}">Product</div>
                         <div class="small text-secondary">
-                            <span class="price" th:text="${@currency.format(product.price, #locale)}">0</span> /
-                            <span th:text="${product.unitLabel}">unit</span>
+                            <span class="price" th:text="${@currency.format(product.price, #locale)}">0</span>
+                            <span> / </span><span th:text="${product.unitLabel}">unit</span>
                         </div>
-                        <span class="badge" th:classappend="${product.available} ? 'text-bg-success' : 'text-bg-secondary'"
-                              th:text="${product.available} ? 'Available' : 'Out of stock'">Available</span>
+                        <span class="badge mt-1"
+                              th:classappend="${product.available} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${product.available} ? 'In Stock' : 'Out of Stock'">Stock</span>
                     </div>
-                    <div class="d-flex flex-column gap-1">
-                        <a class="btn btn-sm btn-outline-primary" th:href="@{/admin/products/{id}/edit(id=${product.id})}">Edit</a>
+                    <div class="d-flex flex-column gap-1 flex-shrink-0">
+                        <a class="btn btn-sm btn-outline-primary"
+                           th:href="@{/admin/products/{id}/edit(id=${product.id})}">
+                            <i class="bi bi-pencil"></i>
+                        </a>
                         <form th:action="@{/admin/products/{id}/toggle(id=${product.id})}" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <button class="btn btn-sm btn-outline-secondary w-100" type="submit"
-                                    th:text="${product.available} ? 'Mark Out' : 'Mark Available'">Mark Out</button>
+                                    th:text="${product.available} ? 'Out' : 'In'">Toggle</button>
                         </form>
                         <form th:action="@{/admin/products/{id}/delete(id=${product.id})}" method="post">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                            <button class="btn btn-sm btn-outline-danger w-100" type="submit">Delete</button>
+                            <button class="btn btn-sm btn-outline-danger w-100" type="submit"
+                                    onclick="return confirm('Delete this product? This cannot be undone.')">
+                                <i class="bi bi-trash"></i>
+                            </button>
                         </form>
                     </div>
+                </div>
+
+                <div th:if="${#lists.isEmpty(products)}" class="text-center text-secondary py-3">
+                    <i class="bi bi-box d-block fs-2 mb-1 opacity-50"></i>
+                    No products yet.
                 </div>
             </div>
         </section>

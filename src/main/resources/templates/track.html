@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Track Order</title>
+    <title th:text="${'Order ' + order.trackingCode + ' — Track'}">Track Order</title>
+    <meta name="description" content="Live order tracking page showing current status and payment details.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
@@ -14,48 +15,53 @@
 
 <main class="container py-4">
     <div class="row g-4">
+
+        <!-- Left: Status & Payment -->
         <div class="col-lg-7">
             <div class="summary-panel">
+
+                <!-- Header -->
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div>
-                        <h1 class="h3 fw-bold mb-1">Order #<span th:text="${order.id}">1</span></h1>
-                        <p class="text-secondary mb-0" th:text="${order.customerName}">Customer</p>
-                        <p class="tracking-code mt-2 mb-0">
-                            Tracking Code:
+                        <h1 class="h4 fw-bold mb-1">
+                            Order <span class="text-success" th:text="'#' + ${order.id}">1</span>
+                        </h1>
+                        <p class="text-secondary mb-0 fw-medium" th:text="${order.customerName}">Customer</p>
+                        <div class="tracking-code mt-2">
+                            <i class="bi bi-upc-scan"></i>
+                            <span>Tracking Code:</span>
                             <strong th:text="${order.trackingCode}">code</strong>
-                        </p>
+                        </div>
                     </div>
-                    <span class="badge rounded-pill status-badge" th:text="#{${'status.' + order.status.name()}}">Status</span>
+                    <span class="badge rounded-pill status-badge"
+                          th:classappend="${order.status.name() == 'CANCELLED' ? ' cancelled' : ''}"
+                          th:text="#{${'status.' + order.status.name()}}">Status</span>
                 </div>
 
-                <div class="status-timeline mb-4">
-                    <div class="step" th:classappend="${order.status.name() == 'PENDING_APPROVAL'} ? 'active' : ''" th:text="#{status.PENDING_APPROVAL}">Pending</div>
-                    <div class="step" th:classappend="${order.status.name() == 'WAITING_FOR_PAYMENT' || order.status.name() == 'PAYMENT_SUBMITTED' || order.status.name() == 'COMPLETED' || order.status.name() == 'PROCESSING'} ? 'active' : ''" th:text="#{status.WAITING_FOR_PAYMENT}">Approved</div>
-                    <div class="step" th:classappend="${order.status.name() == 'PAYMENT_SUBMITTED' || order.status.name() == 'COMPLETED' || order.status.name() == 'PROCESSING' || order.status.name() == 'OUT_FOR_DELIVERY'} ? 'active' : ''" th:text="#{status.PAYMENT_SUBMITTED}">Payment</div>
-                    <div class="step" th:classappend="${order.status.name() == 'COMPLETED' || order.status.name() == 'OUT_FOR_DELIVERY'} ? 'active' : ''" th:text="#{status.OUT_FOR_DELIVERY}">Completed</div>
+                <!-- 5-Step Stepper -->
+                <div class="mb-4">
+                    <div th:replace="~{fragments/layout :: orderStepper(order=${order})}"></div>
                 </div>
 
-                <section class="how-it-works mb-3">
-                    <h3 class="h6">How Order Tracking Works</h3>
-                    <ol class="small text-secondary">
-                        <li>We verify stock availability and approve your order.</li>
-                        <li>After approval, pay using KPay or Wave and upload your payment screenshot.</li>
-                        <li>Admin verifies payment; once verified, the order is processed and dispatched.</li>
-                        <li>Use this page to monitor the current status and view your receipt.</li>
-                    </ol>
-                </section>
-
+                <!-- Status-specific content -->
                 <div th:switch="${order.status.name()}">
-                    <div th:case="'PENDING_APPROVAL'" class="alert alert-warning mb-0">
-                        <strong>Waiting for stock approval.</strong>
-                        No payment is required yet. Please keep this page link and refresh later.
+
+                    <!-- PENDING_APPROVAL -->
+                    <div th:case="'PENDING_APPROVAL'" class="alert alert-warning d-flex align-items-start gap-2 mb-0">
+                        <i class="bi bi-hourglass-split fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Waiting for stock approval.</strong><br>
+                            No payment is required yet. Please save this page link and refresh later.
+                        </div>
                     </div>
+
+                    <!-- WAITING_FOR_PAYMENT -->
                     <div th:case="'WAITING_FOR_PAYMENT'">
                         <div class="payment-ready-banner mb-3">
-                            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            <i class="bi bi-check-circle-fill"></i>
                             <div>
-                                <strong>Your order is approved.</strong>
-                                <span>Please pay with KPay or Wave, then upload the payment screenshot below.</span>
+                                <strong>Your order is approved — please pay now.</strong>
+                                <span>Pay using KPay or Wave Money, then upload your payment screenshot below.</span>
                             </div>
                         </div>
                         <div class="row g-3 mb-3">
@@ -68,36 +74,42 @@
                             </div>
                             <div class="col-sm-6">
                                 <div class="payment-card">
-                                    <img th:src="@{/images/wave-qr.svg}" alt="Wave QR code">
+                                    <img th:src="@{/images/wave-qr.svg}" alt="Wave Money QR code">
                                     <strong>Wave Money</strong>
                                     <span th:text="${wavePhone}">phone</span>
                                 </div>
                             </div>
                         </div>
-                        <form id="paymentUploadForm" th:action="@{/orders/track/{code}/payment(code=${order.trackingCode})}" method="post" enctype="multipart/form-data" class="upload-panel">
+
+                        <form id="paymentUploadForm"
+                              th:action="@{/orders/track/{code}/payment(code=${order.trackingCode})}"
+                              method="post" enctype="multipart/form-data" class="upload-panel">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="_csrf_token">
 
-                            <label class="form-label fw-bold" for="screenshotInput">
-                                <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
-                                Upload Payment Screenshot
+                            <label class="form-label fw-bold mb-1" for="screenshotInput">
+                                <i class="bi bi-cloud-arrow-up me-1"></i> Upload Payment Screenshot
                             </label>
-                            <p class="text-secondary small mb-2">Delivery will be arranged after admin confirms this payment.</p>
+                            <p class="text-secondary small mb-3">
+                                Delivery will be arranged after our team confirms your payment.
+                            </p>
 
-                            <div id="dropZone" class="border rounded p-3 mb-3 text-center" style="background:#fafafa; cursor:pointer;">
+                            <div id="dropZone" class="border-2 rounded-3 p-4 text-center"
+                                 style="border: 2px dashed #86efac; background: #f0fdf4; cursor: pointer; transition: all .2s;">
                                 <input id="screenshotInput" class="d-none" type="file" name="screenshot" accept="image/*" required>
                                 <div id="dropInner">
-                                    <i class="bi bi-cloud-arrow-up" style="font-size:28px"></i>
-                                    <div class="mt-2">Drag & drop image here, or click to choose</div>
+                                    <i class="bi bi-image fs-1 text-success opacity-50"></i>
+                                    <div class="mt-2 fw-semibold text-secondary">Drag &amp; drop image here</div>
+                                    <div class="small text-secondary">or <span class="text-success fw-semibold">click to browse</span></div>
                                 </div>
                                 <div id="previewArea" class="mt-3 d-none">
-                                    <img id="previewImage" src="#" alt="Preview" style="max-width:100%; height:auto; display:block; margin:0 auto;">
-                                    <div id="uploadStatus" class="mt-2"></div>
+                                    <img id="previewImage" src="#" alt="Preview"
+                                         style="max-width:100%; max-height:240px; border-radius:8px; display:block; margin:0 auto;">
+                                    <div id="uploadStatus" class="mt-2 small"></div>
                                 </div>
                             </div>
 
-                            <button id="uploadBtn" class="btn btn-success btn-lg w-100" type="button" disabled>
-                                <i class="bi bi-upload" aria-hidden="true"></i>
-                                Upload Screenshot
+                            <button id="uploadBtn" class="btn btn-success btn-lg w-100 mt-3" type="button" disabled>
+                                <i class="bi bi-upload me-1"></i> Upload Screenshot
                             </button>
                         </form>
 
@@ -114,99 +126,204 @@
 
                                 function showPreview(file) {
                                     const reader = new FileReader();
-                                    reader.onload = function(e) {
+                                    reader.onload = e => {
                                         previewImage.src = e.target.result;
                                         previewArea.classList.remove('d-none');
-                                    }
+                                    };
                                     reader.readAsDataURL(file);
                                 }
 
                                 dropZone.addEventListener('click', () => input.click());
-
-                                input.addEventListener('change', (e) => {
+                                input.addEventListener('change', e => {
                                     const file = e.target.files[0];
-                                    if (file) {
-                                        showPreview(file);
-                                        uploadBtn.disabled = false;
-                                    }
+                                    if (file) { showPreview(file); uploadBtn.disabled = false; }
                                 });
-
-                                dropZone.addEventListener('dragover', (e) => {
+                                dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor='#16a34a'; dropZone.style.background='#dcfce7'; });
+                                dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor='#86efac'; dropZone.style.background='#f0fdf4'; });
+                                dropZone.addEventListener('drop', e => {
                                     e.preventDefault();
-                                    dropZone.classList.add('border-primary');
-                                });
-                                dropZone.addEventListener('dragleave', (e) => {
-                                    dropZone.classList.remove('border-primary');
-                                });
-                                dropZone.addEventListener('drop', (e) => {
-                                    e.preventDefault();
-                                    dropZone.classList.remove('border-primary');
+                                    dropZone.style.borderColor='#86efac'; dropZone.style.background='#f0fdf4';
                                     const file = e.dataTransfer.files[0];
-                                    if (file) {
-                                        input.files = e.dataTransfer.files;
-                                        showPreview(file);
-                                        uploadBtn.disabled = false;
-                                    }
+                                    if (file) { input.files = e.dataTransfer.files; showPreview(file); uploadBtn.disabled = false; }
                                 });
 
                                 uploadBtn.addEventListener('click', () => {
-                                    const file = input.files[0];
-                                    if (!file) return;
+                                    if (!input.files[0]) return;
                                     uploadBtn.disabled = true;
-                                    uploadStatus.innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div> Uploading...';
+                                    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
                                     const fd = new FormData();
-                                    fd.append('screenshot', file);
-
+                                    fd.append('screenshot', input.files[0]);
                                     fetch(form.action, {
                                         method: 'POST',
-                                        headers: {
-                                            'X-CSRF-TOKEN': csrfToken
-                                        },
+                                        headers: { 'X-CSRF-TOKEN': csrfToken },
                                         body: fd
                                     }).then(r => {
-                                        if (r.redirected) {
-                                            window.location = r.url;
-                                            return;
-                                        }
-                                        return r.text();
-                                    }).then(text => {
-                                        uploadStatus.innerText = 'Upload completed.';
-                                        // Optionally refresh or show success message
-                                    }).catch(err => {
-                                        uploadStatus.innerText = 'Upload failed. Please try again.';
+                                        if (r.redirected) { window.location = r.url; }
+                                        else { uploadStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Upload completed. Refreshing...</span>'; setTimeout(()=>location.reload(), 1200); }
+                                    }).catch(() => {
+                                        uploadStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Upload failed. Please try again.</span>';
                                         uploadBtn.disabled = false;
+                                        uploadBtn.innerHTML = '<i class="bi bi-upload me-1"></i> Upload Screenshot';
                                     });
                                 });
                             })();
                         </script>
                     </div>
-                    <div th:case="'PAYMENT_SUBMITTED'" class="alert alert-info mb-0">
-                        Your payment screenshot was submitted. Admin verification is in progress.
+
+                    <!-- PAYMENT_SUBMITTED -->
+                    <div th:case="'PAYMENT_SUBMITTED'" class="alert alert-info d-flex align-items-start gap-2 mb-0">
+                        <i class="bi bi-clock-history fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Payment screenshot received.</strong><br>
+                            Our team is reviewing your payment. We'll update the status shortly.
+                        </div>
                     </div>
-                    <div th:case="'COMPLETED'" class="alert alert-success mb-0">
-                        Payment confirmed. Your order is completed.
+
+                    <!-- PROCESSING -->
+                    <div th:case="'PROCESSING'" class="alert alert-primary d-flex align-items-start gap-2 mb-0">
+                        <i class="bi bi-box-seam fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Payment confirmed — order is being packed.</strong><br>
+                            Your order is being prepared for delivery.
+                        </div>
+                    </div>
+
+                    <!-- OUT_FOR_DELIVERY -->
+                    <div th:case="'OUT_FOR_DELIVERY'" class="alert alert-primary d-flex align-items-start gap-2 mb-0">
+                        <i class="bi bi-truck fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Your order is on its way!</strong><br>
+                            Our delivery team is heading to your address. Please be available to receive it.
+                        </div>
+                    </div>
+
+                    <!-- COMPLETED -->
+                    <div th:case="'COMPLETED'" class="alert alert-success d-flex align-items-start gap-2 mb-0">
+                        <i class="bi bi-check-circle-fill fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Order delivered!</strong><br>
+                            Thank you for shopping with us. We hope to see you again.
+                        </div>
+                    </div>
+
+                    <!-- CANCELLED -->
+                    <div th:case="'CANCELLED'" class="alert alert-danger d-flex align-items-start gap-2 mb-0">
+                        <i class="bi bi-x-circle-fill fs-5 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <strong>Order cancelled.</strong><br>
+                            This order has been cancelled. Please contact us if you need assistance.
+                        </div>
+                    </div>
+
+                </div><!-- end th:switch -->
+
+                <!-- How tracking works (collapsed) -->
+                <div class="accordion accordion-flush border-top mt-3" id="howTrackAccordion">
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed px-0 bg-transparent small text-secondary"
+                                    type="button" data-bs-toggle="collapse" data-bs-target="#howTrackBody">
+                                <i class="bi bi-question-circle me-2"></i>How does order tracking work?
+                            </button>
+                        </h2>
+                        <div id="howTrackBody" class="accordion-collapse collapse">
+                            <ol class="small text-secondary ps-3 mt-1 mb-0">
+                                <li>We verify stock availability and approve your order.</li>
+                                <li>After approval, pay using KPay or Wave and upload your screenshot.</li>
+                                <li>Admin verifies payment; order moves to Processing → Out for Delivery.</li>
+                                <li>Bookmark this page to check status anytime.</li>
+                            </ol>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Right: Order Summary -->
         <div class="col-lg-5">
-            <div class="summary-panel">
-                <h2 class="h5 fw-bold">Order Items</h2>
-                <div class="border-bottom py-2" th:each="item : ${order.items}">
-                    <div class="d-flex justify-content-between gap-3">
-                        <span><span th:text="${item.product.name}">Product</span> x <span th:text="${item.quantity}">1</span></span>
-                        <strong><span class="price" th:text="${@currency.format(item.lineTotal, #locale)}">0</span></strong>
+            <div class="summary-panel mb-3">
+                <h2 class="h5 fw-bold mb-3">Order Summary</h2>
+                <div class="border-bottom pb-2 mb-2" th:each="item : ${order.items}">
+                    <div class="d-flex justify-content-between gap-2">
+                        <span class="fw-medium">
+                            <span th:text="${item.product.name}">Product</span>
+                            <span class="text-secondary"> × <span th:text="${item.quantity}">1</span></span>
+                        </span>
+                        <strong class="flex-shrink-0">
+                            <span class="price" th:text="${@currency.format(item.lineTotal, #locale)}">0</span>
+                        </strong>
+                    </div>
+                    <div class="small text-secondary" th:if="${item.product.unitLabel}" th:text="${item.product.unitLabel}"></div>
+                </div>
+                <div class="d-flex justify-content-between pt-2 fw-bold">
+                    <span th:text="#{order.total}">Total</span>
+                    <span class="price" th:text="${@currency.format(order.totalAmount, #locale)}">0</span>
+                </div>
+            </div>
+
+            <!-- Delivery & Contact Details -->
+            <div class="summary-panel mb-3">
+                <h2 class="h5 fw-bold mb-3">Delivery Details</h2>
+                <div class="simple-info-grid">
+                    <div>
+                        <i class="bi bi-person-fill"></i>
+                        <div>
+                            <div class="small text-secondary">Customer</div>
+                            <div class="fw-medium" th:text="${order.customerName}">Name</div>
+                        </div>
+                    </div>
+                    <div>
+                        <i class="bi bi-telephone-fill"></i>
+                        <div>
+                            <div class="small text-secondary">Phone</div>
+                            <div class="fw-medium" th:text="${order.phoneNumber}">phone</div>
+                        </div>
+                    </div>
+                    <div>
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <div>
+                            <div class="small text-secondary">Delivery Address</div>
+                            <div class="fw-medium" th:text="${order.deliveryAddress}">address</div>
+                        </div>
+                    </div>
+                    <div th:if="${order.preferredDeliverySlot != null and !#strings.isEmpty(order.preferredDeliverySlot)}">
+                        <i class="bi bi-clock-fill"></i>
+                        <div>
+                            <div class="small text-secondary">Preferred Time Slot</div>
+                            <div class="fw-medium" th:text="${order.preferredDeliverySlot}">slot</div>
+                        </div>
+                    </div>
+                    <div th:if="${order.deliveryNote != null and !#strings.isEmpty(order.deliveryNote)}">
+                        <i class="bi bi-chat-left-text-fill"></i>
+                        <div>
+                            <div class="small text-secondary">Delivery Note</div>
+                            <div class="fw-medium" th:text="${order.deliveryNote}">note</div>
+                        </div>
                     </div>
                 </div>
-                <div class="d-flex justify-content-between pt-3">
-                                    <span th:text="#{order.total}">Total</span>
-                                    <strong><span class="price" th:text="${@currency.format(order.totalAmount, #locale)}">0</span></strong>
-                </div>
-                <div class="small text-secondary mt-3">
-                    <div>Phone: <span th:text="${order.phoneNumber}">phone</span></div>
-                    <div>Address: <span th:text="${order.deliveryAddress}">address</span></div>
-                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="summary-panel" th:if="${order.paymentScreenshotPath}">
+                <h2 class="h5 fw-bold mb-3">Payment Proof</h2>
+                <a th:href="${order.paymentScreenshotPath}" target="_blank" rel="noopener">
+                    <img th:src="${order.paymentScreenshotPath}" alt="Payment receipt"
+                         class="img-fluid rounded-3 border"
+                         style="max-height:200px; width:100%; object-fit:cover;">
+                    <div class="small text-success mt-1 fw-semibold">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>View full image
+                    </div>
+                </a>
+            </div>
+
+            <!-- Navigation -->
+            <div class="mt-3 d-flex gap-2">
+                <a class="btn btn-outline-secondary" th:href="@{/orders/history}">
+                    <i class="bi bi-arrow-left me-1"></i> Order History
+                </a>
+                <a class="btn btn-outline-success" th:href="@{/}">
+                    <i class="bi bi-basket me-1"></i> Shop Again
+                </a>
             </div>
         </div>
     </div>

@@ -44,4 +44,21 @@ public interface OrderRepository extends JpaRepository<CustomerOrder, Long> {
     // Top selling products in the date range (product id, product name, total quantity)
     @Query("select oi.product.id, oi.product.name, sum(oi.quantity) as qty from OrderItem oi where oi.order.createdAt between :start and :end group by oi.product.id, oi.product.name order by qty desc")
     List<Object[]> findTopSellingProducts(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    // --- Admin multi-criteria search ---
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    @Query("select o from CustomerOrder o where lower(o.customerName) like lower(concat('%', :name, '%')) order by o.createdAt desc")
+    List<CustomerOrder> findByCustomerNameContainingIgnoreCase(@Param("name") String name);
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    @Query("select o from CustomerOrder o where o.phoneNumber like concat('%', :phone, '%') order by o.createdAt desc")
+    List<CustomerOrder> findByPhoneNumberContaining(@Param("phone") String phone);
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    @Query("select o from CustomerOrder o where lower(o.trackingCode) like lower(concat('%', :code, '%')) order by o.createdAt desc")
+    List<CustomerOrder> findByTrackingCodeContainingIgnoreCase(@Param("code") String code);
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    List<CustomerOrder> findByStatusAndCreatedAtBetweenOrderByCreatedAtDesc(OrderStatus status, LocalDateTime start, LocalDateTime end);
 }

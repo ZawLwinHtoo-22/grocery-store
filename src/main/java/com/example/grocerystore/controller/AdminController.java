@@ -5,6 +5,7 @@ import com.example.grocerystore.model.Product;
 import com.example.grocerystore.service.CloudinaryService;
 import com.example.grocerystore.service.OrderService;
 import com.example.grocerystore.service.ProductService;
+import com.example.grocerystore.service.ReportService;
 import javax.validation.Valid;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 @Controller
 @RequestMapping("/admin")
@@ -28,9 +30,12 @@ public class AdminController {
     private final ProductService productService;
     private final OrderService orderService;
     private final CloudinaryService cloudinaryService;
-    private final com.example.grocerystore.service.ReportService reportService;
+    private final ReportService reportService;
 
-    public AdminController(ProductService productService, OrderService orderService, CloudinaryService cloudinaryService, com.example.grocerystore.service.ReportService reportService) {
+    public AdminController(ProductService productService,
+                           OrderService orderService,
+                           CloudinaryService cloudinaryService,
+                           ReportService reportService) {
         this.productService = productService;
         this.orderService = orderService;
         this.cloudinaryService = cloudinaryService;
@@ -39,19 +44,21 @@ public class AdminController {
 
     @GetMapping({"", "/dashboard"})
     public String dashboard(@RequestParam(required = false) OrderStatus status,
+                            @RequestParam(required = false) String query,
                             @RequestParam(required = false) String from,
                             @RequestParam(required = false) String to,
                             Model model) {
-        addDashboardModel(model, status, new Product());
-        // default date range: last 30 days
+        LocalDate fromDate = (from != null && !from.isBlank()) ? LocalDate.parse(from) : null;
+        LocalDate toDate = (to != null && !to.isBlank()) ? LocalDate.parse(to) : null;
+
+        addDashboardModel(model, status, query, fromDate, toDate, new Product());
+
+        // Analytics range: default last 30 days
         java.time.LocalDateTime end = java.time.LocalDateTime.now();
         java.time.LocalDateTime start = end.minusDays(30);
-        if (from != null && !from.isBlank()) {
-            start = java.time.LocalDate.parse(from).atStartOfDay();
-        }
-        if (to != null && !to.isBlank()) {
-            end = java.time.LocalDate.parse(to).plusDays(1).atStartOfDay().minusNanos(1);
-        }
+        if (fromDate != null) start = fromDate.atStartOfDay();
+        if (toDate != null) end = toDate.plusDays(1).atStartOfDay().minusNanos(1);
+
         model.addAttribute("analyticsRangeStart", start);
         model.addAttribute("analyticsRangeEnd", end);
         model.addAttribute("analytics", reportService.salesOverview(start, end));
@@ -62,7 +69,7 @@ public class AdminController {
     public String editProduct(@PathVariable Long id,
                               @RequestParam(required = false) OrderStatus status,
                               Model model) {
-        addDashboardModel(model, status, productService.findById(id));
+        addDashboardModel(model, status, null, null, null, productService.findById(id));
         model.addAttribute("editing", true);
         return "admin/admin-dashboard";
     }
@@ -79,7 +86,7 @@ public class AdminController {
         }
 
         if (bindingResult.hasErrors()) {
-            addDashboardModel(model, null, product);
+            addDashboardModel(model, null, null, null, null, product);
             return "admin/admin-dashboard";
         }
 
@@ -93,7 +100,7 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("success", "Product saved successfully.");
         } catch (IOException e) {
             bindingResult.rejectValue("imageUrl", "error.product", "Failed to upload image.");
-            addDashboardModel(model, null, product);
+            addDashboardModel(model, null, null, null, null, product);
             return "admin/admin-dashboard";
         }
 
@@ -129,22 +136,59 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
 
+    @PostMapping("/orders/{id}/processing")
+    public String markProcessing(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.markProcessing(id);
+            redirectAttributes.addFlashAttribute("success", "Order marked as Processing.");
+        } catch (IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @PostMapping("/orders/{id}/out-for-delivery")
+    public String markOutForDelivery(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.markOutForDelivery(id);
+            redirectAttributes.addFlashAttribute("success", "Order marked as Out for Delivery.");
+        } catch (IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
     @PostMapping("/orders/{id}/confirm")
     public String confirmOrder(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             orderService.confirm(id);
-            redirectAttributes.addFlashAttribute("success", "Order completed.");
+            redirectAttributes.addFlashAttribute("success", "Order marked as Completed.");
         } catch (IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
-        return "redirect:/admin/dashboard?status=PAYMENT_SUBMITTED";
+        return "redirect:/admin/dashboard";
     }
 
-    private void addDashboardModel(Model model, OrderStatus status, Product productForm) {
-        model.addAttribute("orders", orderService.findOrders(status));
+    @PostMapping("/orders/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.cancel(id);
+            redirectAttributes.addFlashAttribute("success", "Order cancelled.");
+        } catch (IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    private void addDashboardModel(Model model, OrderStatus status, String query,
+                                   LocalDate from, LocalDate to, Product productForm) {
+        model.addAttribute("orders", orderService.searchOrders(query, status, from, to));
         model.addAttribute("products", productService.findAll());
         model.addAttribute("statuses", OrderStatus.values());
         model.addAttribute("selectedStatus", status);
+        model.addAttribute("searchQuery", query);
+        model.addAttribute("fromDate", from);
+        model.addAttribute("toDate", to);
         model.addAttribute("productForm", productForm);
     }
 }
