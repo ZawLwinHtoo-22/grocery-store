@@ -77,33 +77,70 @@ public class AdminController {
         return "admin/admin-dashboard";
     }
 
+    @GetMapping("/products/new")
+    public String newProduct(Model model) {
+        // Provide an empty Product form for creating a new product
+        model.addAttribute("productForm", new Product());
+        return "admin/product-form";
+    }
+
+    @GetMapping("/products")
+    public String products(Model model) {
+        model.addAttribute("products", productService.findAll());
+        return "admin/products";
+    }
+
     @GetMapping("/products/{id}/edit")
     public String editProduct(@PathVariable Long id,
                               @RequestParam(required = false) OrderStatus status,
                               Model model) {
-        addDashboardModel(model, status, null, null, null, productService.findById(id));
+        // Load product into the product form template for editing
+        Product p = productService.findById(id);
+        model.addAttribute("productForm", p);
         model.addAttribute("editing", true);
-        return "admin/admin-dashboard";
+        return "admin/product-form";
     }
 
+    @PostMapping("/products/save")
+    public String saveProductSave(@Valid @ModelAttribute("productForm") Product product,
+                                  BindingResult bindingResult,
+                                  @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                                  RedirectAttributes redirectAttributes,
+                                  Model model) {
+        // Delegate to the existing save logic (shared)
+        return saveOrUpdateProduct(product, bindingResult, imageFile, redirectAttributes, model);
+    }
+
+    // Backwards-compatible endpoint used by admin dashboard form
     @PostMapping("/products")
     public String saveProduct(@Valid @ModelAttribute("productForm") Product product,
                               BindingResult bindingResult,
-                              @RequestParam("imageFile") MultipartFile imageFile,
+                              @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                               RedirectAttributes redirectAttributes,
                               Model model) {
+        return saveOrUpdateProduct(product, bindingResult, imageFile, redirectAttributes, model);
+    }
 
-        if (product.getId() == null && imageFile.isEmpty()) {
+    // Shared save method for create/update
+    private String saveOrUpdateProduct(Product product,
+                                       BindingResult bindingResult,
+                                       MultipartFile imageFile,
+                                       RedirectAttributes redirectAttributes,
+                                       Model model) {
+
+        if (product.getId() == null && (imageFile == null || imageFile.isEmpty())) {
             bindingResult.rejectValue("imageUrl", "error.product", "Please upload an image.");
         }
 
         if (bindingResult.hasErrors()) {
-            addDashboardModel(model, null, null, null, null, product);
-            return "admin/admin-dashboard";
+            // on error, return to product-form if editing/creating
+            if (product.getId() != null) model.addAttribute("editing", true);
+            model.addAttribute("productForm", product);
+            return "admin/product-form";
         }
 
         try {
-            if (!imageFile.isEmpty()) {
+            if (imageFile != null && !imageFile.isEmpty()) {
                 String uploadedImageUrl = cloudinaryService.uploadImage(imageFile);
                 product.setImageUrl(uploadedImageUrl);
             }
@@ -112,18 +149,18 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("success", "Product saved successfully.");
         } catch (IOException e) {
             bindingResult.rejectValue("imageUrl", "error.product", "Failed to upload image.");
-            addDashboardModel(model, null, null, null, null, product);
-            return "admin/admin-dashboard";
+            model.addAttribute("productForm", product);
+            return "admin/product-form";
         }
 
-        return "redirect:/admin/dashboard#products";
+        return "redirect:/admin/products";
     }
 
     @PostMapping("/products/{id}/toggle")
     public String toggleProduct(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         productService.toggleAvailability(id);
         redirectAttributes.addFlashAttribute("success", "Product stock availability updated.");
-        return "redirect:/admin/dashboard#products";
+        return "redirect:/admin/products";
     }
 
     @PostMapping("/products/{id}/delete")
@@ -134,7 +171,7 @@ public class AdminController {
         } catch (DataIntegrityViolationException ex) {
             redirectAttributes.addFlashAttribute("error", "This product is already used by an order. Toggle it out of stock instead.");
         }
-        return "redirect:/admin/dashboard#products";
+        return "redirect:/admin/products";
     }
 
     @PostMapping("/orders/{id}/approve")
