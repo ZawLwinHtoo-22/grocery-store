@@ -75,11 +75,13 @@ public class OrderService {
             order.setDeliveryNote(form.getDeliveryNote());
         }
 
-        // Generate professional tracking code: ORD-YYYYMMDD-XXXXXX where XXXXXX is a 6-digit sequential number for the day
-        String trackingCode = generateTrackingCode();
-        order.setTrackingCode(trackingCode);
-
-        return orderRepository.save(order);
+        // First persist the order to obtain a DB id, then create a simple sequential short order number based on that id
+        CustomerOrder saved = orderRepository.save(order);
+        // Format as OD-00001 using the DB auto-increment id
+        String trackingCode = String.format("OD-%05d", saved.getId());
+        saved.setTrackingCode(trackingCode);
+        saved.setUpdatedAt(LocalDateTime.now());
+        return orderRepository.save(saved);
     }
 
     @Transactional(readOnly = true)
@@ -92,7 +94,12 @@ public class OrderService {
     public CustomerOrder ensureTrackingCode(Long id) {
         CustomerOrder order = findWithItems(id);
         if (order.getTrackingCode() == null || order.getTrackingCode().isBlank()) {
-            order.setTrackingCode(generateTrackingCode());
+            // Derive the short order number from the DB id
+            if (order.getId() == null) {
+                order = orderRepository.save(order);
+            }
+            String code = String.format("OD-%05d", order.getId());
+            order.setTrackingCode(code);
             order.setUpdatedAt(LocalDateTime.now());
             orderRepository.save(order);
         }
@@ -241,16 +248,10 @@ public class OrderService {
         order.setUpdatedAt(LocalDateTime.now());
     }
 
-    // Generate tracking code: ORD-YYYYMMDD-XXXXXX where XXXXXX is sequential per day
+    // Generate tracking code fallback (rarely used). The main path uses the DB id to produce OD-XXXXX.
     private String generateTrackingCode() {
-        java.time.LocalDate today = java.time.LocalDate.now();
-        LocalDateTime start = today.atStartOfDay();
-        LocalDateTime end = today.plusDays(1).atStartOfDay().minusNanos(1);
-        long countToday = orderRepository.countByCreatedAtBetween(start, end);
-        long sequence = countToday + 1;
-        String seqStr = String.format("%06d", sequence);
-        String dateStr = today.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE); // YYYYMMDD
-        return "ORD-" + dateStr + "-" + seqStr;
+        // fallback: use timestamp with OD- prefix to guarantee uniqueness
+        return "OD-" + System.currentTimeMillis();
     }
 
     private void requireStatus(CustomerOrder order, OrderStatus expected) {

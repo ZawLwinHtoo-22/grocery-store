@@ -180,6 +180,53 @@ public class AdminController {
         return "redirect:/admin/dashboard";
     }
 
+    @PostMapping("/orders/{id}/reject")
+    public String rejectOrder(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            orderService.cancel(id);
+            redirectAttributes.addFlashAttribute("success", "Order rejected and cancelled.");
+        } catch (IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
+    @PostMapping("/orders/{id}/status")
+    public String updateStatus(@PathVariable Long id, @RequestParam("status") String status,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            switch (status) {
+                case "APPROVE":
+                case "WAITING_FOR_PAYMENT":
+                    orderService.approve(id);
+                    redirectAttributes.addFlashAttribute("success", "Order approved.");
+                    break;
+                case "REJECT":
+                case "CANCELLED":
+                    orderService.cancel(id);
+                    redirectAttributes.addFlashAttribute("success", "Order cancelled.");
+                    break;
+                case "PROCESSING":
+                    orderService.markProcessing(id);
+                    redirectAttributes.addFlashAttribute("success", "Order marked as Processing.");
+                    break;
+                case "OUT_FOR_DELIVERY":
+                    orderService.markOutForDelivery(id);
+                    redirectAttributes.addFlashAttribute("success", "Order marked as Out for Delivery.");
+                    break;
+                case "COMPLETED":
+                    orderService.confirm(id);
+                    redirectAttributes.addFlashAttribute("success", "Order marked as Completed.");
+                    break;
+                default:
+                    redirectAttributes.addFlashAttribute("error", "Unknown status action.");
+            }
+        } catch (IllegalStateException ex) {
+            redirectAttributes.addFlashAttribute("error", ex.getMessage());
+        }
+        return "redirect:/admin/dashboard";
+    }
+
     private void addDashboardModel(Model model, OrderStatus status, String query,
                                    LocalDate from, LocalDate to, Product productForm) {
         model.addAttribute("orders", orderService.searchOrders(query, status, from, to));

@@ -18,7 +18,7 @@
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a th:href="@{/orders/history}" class="back-link small">
+            <a th:href="@{/track}" class="back-link small">
                 <i class="bi bi-arrow-left me-1"></i> Back to History
             </a>
             <h1 class="h3 fw-bold mt-2 mb-1">Order Details</h1>
@@ -33,7 +33,7 @@
                   th:text="#{${'status.' + order.status.name()}}">Status</span>
             <div class="small text-secondary mt-1">
                 <i class="bi bi-calendar3 me-1"></i>
-                <span th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}">date</span>
+                <span th:text="${@dateUtils.format(order.createdAt, 'dd MMM yyyy, HH:mm', #locale)}">date</span>
             </div>
         </div>
     </div>
@@ -161,14 +161,14 @@
                         <i class="bi bi-calendar-event"></i>
                         <div>
                             <div class="small text-secondary">Placed On</div>
-                            <div class="fw-medium" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}">date</div>
+                            <div class="fw-medium" th:text="${@dateUtils.format(order.createdAt, 'dd MMM yyyy, HH:mm', #locale)}">date</div>
                         </div>
                     </div>
                     <div th:if="${order.updatedAt}">
                         <i class="bi bi-arrow-repeat"></i>
                         <div>
                             <div class="small text-secondary">Last Updated</div>
-                            <div class="fw-medium" th:text="${#temporals.format(order.updatedAt, 'dd MMM yyyy, HH:mm')}">date</div>
+                            <div class="fw-medium" th:text="${@dateUtils.format(order.updatedAt, 'dd MMM yyyy, HH:mm', #locale)}">date</div>
                         </div>
                     </div>
                 </div>
@@ -177,7 +177,7 @@
                     <a class="btn btn-success" th:href="@{/orders/track/{code}(code=${order.trackingCode})}">
                         <i class="bi bi-radar me-1"></i> Track Live Status
                     </a>
-                    <a class="btn btn-outline-secondary" th:href="@{/orders/history}">
+                    <a class="btn btn-outline-secondary" th:href="@{/track}">
                         <i class="bi bi-arrow-left me-1"></i> Back to History
                     </a>
                     <a class="btn btn-outline-success" th:href="@{/}">

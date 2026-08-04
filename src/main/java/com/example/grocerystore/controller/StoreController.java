@@ -198,34 +198,52 @@ public class StoreController {
     }
 
     @GetMapping("/orders/history")
-    public String orderHistoryForm() {
-        return "order-history";
+    public String orderHistoryForm(Model model) {
+        // Redirect legacy history route to unified /track page
+        return "redirect:/track";
     }
 
-    @PostMapping("/orders/history/search")
-    public String orderHistorySearch(@RequestParam(required = false) String trackingCode,
-                                     @RequestParam(required = false) String phoneNumber,
-                                     Model model,
-                                     RedirectAttributes redirectAttributes) {
-        if ((trackingCode == null || trackingCode.isBlank()) && (phoneNumber == null || phoneNumber.isBlank())) {
-            redirectAttributes.addFlashAttribute("error", "Please provide a tracking code or phone number.");
-            return "redirect:/orders/history";
+    @PostMapping("/track/search")
+    public String trackSearchPost(@RequestParam(required = false) String trackingCode,
+                                  @RequestParam(required = false) String phoneNumber,
+                                  @RequestParam(required = false) String startDate,
+                                  @RequestParam(required = false) String endDate,
+                                  Model model,
+                                  RedirectAttributes redirectAttributes) {
+        boolean hasTrackingOrPhone = (trackingCode != null && !trackingCode.isBlank()) || (phoneNumber != null && !phoneNumber.isBlank());
+        boolean hasDateRange = (startDate != null && !startDate.isBlank()) || (endDate != null && !endDate.isBlank());
+
+        if (!hasTrackingOrPhone && !hasDateRange) {
+            redirectAttributes.addFlashAttribute("error", "Please provide a tracking code, phone number, or a date range.");
+            return "redirect:/track";
         }
 
+        // tracking code takes precedence
         if (trackingCode != null && !trackingCode.isBlank()) {
             try {
                 CustomerOrder order = orderService.findWithItemsByTrackingCode(trackingCode.trim());
                 return "redirect:/orders/detail/" + order.getTrackingCode();
             } catch (IllegalArgumentException ex) {
                 redirectAttributes.addFlashAttribute("error", "Order မတွေ့ပါ။ Tracking code ကို ပြန်စစ်ပေးပါ။");
-                return "redirect:/orders/history";
+                return "redirect:/track";
             }
+        }
+
+        // date range search
+        if (hasDateRange) {
+            java.time.LocalDate from = (startDate != null && !startDate.isBlank()) ? java.time.LocalDate.parse(startDate) : null;
+            java.time.LocalDate to = (endDate != null && !endDate.isBlank()) ? java.time.LocalDate.parse(endDate) : null;
+            java.util.List<CustomerOrder> orders = orderService.searchOrders(null, null, from, to);
+            model.addAttribute("orders", orders);
+            model.addAttribute("startDate", startDate);
+            model.addAttribute("endDate", endDate);
+            return "track-search";
         }
 
         // search by phone number
         java.util.List<CustomerOrder> orders = orderService.findByPhoneNumber(phoneNumber.trim());
         model.addAttribute("orders", orders);
         model.addAttribute("phone", phoneNumber.trim());
-        return "order-history";
+        return "track-search";
     }
 }

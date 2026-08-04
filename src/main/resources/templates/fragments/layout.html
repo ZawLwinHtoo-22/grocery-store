@@ -21,9 +21,6 @@
                     <a class="nav-link fw-medium" th:href="@{/}" th:text="#{nav.products}">Products</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" th:href="@{/orders/history}" th:text="#{nav.orderHistory}">Order History</a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link fw-medium" th:href="@{/track}" th:text="#{nav.track}">Track Order</a>
                 </li>
                 <li class="nav-item">
@@ -160,7 +157,7 @@
                 <h3 class="h6 fw-bold" th:text="#{footer.quick}">Quick Links</h3>
                 <ul class="list-unstyled footer-links">
                     <li><a th:href="@{/}" th:text="#{nav.products}">Products</a></li>
-                    <li><a th:href="@{/orders/history}" th:text="#{nav.orderHistory}">Order History</a></li>
+                    <li><a th:href="@{/track}" th:text="#{nav.orderHistory}">Order History</a></li>
                     <li><a th:href="@{/track}" th:text="#{nav.track}">Track Order</a></li>
                     <li><a th:href="@{/cart}" th:text="#{nav.cart}">Cart</a></li>
                     <li><a th:href="@{/login}" th:text="#{nav.staff}">Staff Portal</a></li>

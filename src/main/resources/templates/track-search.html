@@ -26,6 +26,18 @@
             </p>
         </div>
 
+        <!-- Date Range Filter (applies to phone/date searches) -->
+        <div class="d-flex gap-2 align-items-center flex-wrap mb-3">
+            <form th:action="@{/track/search}" method="post" class="d-flex gap-2 align-items-center flex-wrap mb-0">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                <label class="small fw-semibold mb-0">From</label>
+                <input type="date" name="startDate" class="form-control form-control-sm" style="width:160px" th:value="${startDate}">
+                <label class="small fw-semibold mb-0">To</label>
+                <input type="date" name="endDate" class="form-control form-control-sm" style="width:160px" th:value="${endDate}">
+                <button class="btn btn-outline-primary btn-sm" type="submit">Apply</button>
+            </form>
+        </div>
+
         <!-- Tab bar -->
         <div class="lookup-tabs" role="tablist">
             <button id="tab-code" class="lookup-tab active" role="tab" aria-controls="panel-code"
@@ -45,35 +57,103 @@
                 <div class="input-group input-group-lg">
                     <span class="input-group-text"><i class="bi bi-shield-check" aria-hidden="true"></i></span>
                     <input id="trackingCode" class="form-control" type="text" name="trackingCode"
-                           placeholder="e.g. ORD-20260730-000001" autocomplete="off">
+                           placeholder="e.g. OD-00001" autocomplete="off">
                     <button class="btn btn-success fw-semibold" type="submit">
                         <i class="bi bi-arrow-right-circle" aria-hidden="true"></i>
                         <span th:text="#{track.button}">Track</span>
                     </button>
                 </div>
                 <p class="text-secondary small mt-2 mb-0">
-                    Your tracking code was shown on screen after checkout and starts with <code>ORD-</code>.
+                    Your tracking code was shown on screen after checkout and starts with <code>OD-</code>.
                 </p>
             </form>
         </div>
 
         <!-- Tab: Phone Number -->
         <div id="panel-phone" class="lookup-tab-panel" role="tabpanel" aria-labelledby="tab-phone">
-            <form th:action="@{/orders/history/search}" method="post">
+            <form th:action="@{/track/search}" method="post">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <label class="form-label fw-semibold" for="phoneSearch" th:text="#{order.history.phoneLabel}">Phone Number</label>
-                <div class="input-group input-group-lg">
-                    <span class="input-group-text"><i class="bi bi-telephone" aria-hidden="true"></i></span>
-                    <input id="phoneSearch" class="form-control" type="tel" name="phoneNumber"
-                           placeholder="09xxxxxxxx" autocomplete="tel">
-                    <button class="btn btn-success fw-semibold" type="submit">
-                        <i class="bi bi-search" aria-hidden="true"></i> Search
-                    </button>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="input-group input-group-lg" style="min-width:220px;flex:1">
+                        <span class="input-group-text"><i class="bi bi-telephone" aria-hidden="true"></i></span>
+                        <input id="phoneSearch" class="form-control" type="tel" name="phoneNumber"
+                               placeholder="09xxxxxxxx" autocomplete="tel">
+                    </div>
+
+                    <div class="d-flex gap-2 align-items-center">
+                        <button class="btn btn-primary btn-lg" type="submit">
+                            <i class="bi bi-search" aria-hidden="true"></i> Search
+                        </button>
+                    </div>
                 </div>
                 <p class="text-secondary small mt-2 mb-0">
-                    Enter the phone number you used when placing your order.
+                    Enter the phone number you used when placing your order, or use the date filter above.
                 </p>
             </form>
+        </div>
+
+        <!-- Results (Order history) -->
+        <div class="mt-4">
+            <div th:if="${orders != null}">
+                <div th:unless="${#lists.isEmpty(orders)}">
+                    <div class="admin-panel mb-3">
+                        <h2 class="h5 fw-bold mb-3">Orders
+                            <span class="badge bg-secondary ms-1" th:text="${#lists.size(orders)}">0</span>
+                        </h2>
+                        <div class="table-responsive">
+                            <table class="table align-middle table-hover mb-0">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Order No</th>
+                                    <th>Order Date</th>
+                                    <th>Items</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Payment</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="o : ${orders}" style="cursor:pointer">
+                                    <td class="fw-bold">
+                                        <a th:href="@{/orders/track/{code}(code=${o.trackingCode})}"
+                                           class="fw-bold text-decoration-none text-primary" th:text="${o.trackingCode}">OD-00001</a>
+                                    </td>
+                                    <td th:text="${@dateUtils.format(o.createdAt, 'dd MMM yyyy, HH:mm', #locale)}">date</td>
+                                    <td>
+                                        <div th:each="it : ${o.items}" class="small">
+                                            <span th:text="${it.product.name}">Product</span> ×<span th:text="${it.quantity}">1</span>
+                                        </div>
+                                    </td>
+                                    <td class="fw-bold" th:text="${@currency.format(o.totalAmount, #locale)}">0</td>
+                                    <td>
+                                        <span class="badge rounded-pill"
+                                              th:with="s=${o.status.name()}"
+                                              th:classappend="${s == 'COMPLETED' ? 'bg-success' : (s == 'CANCELLED' ? 'bg-danger' : (s == 'OUT_FOR_DELIVERY' ? 'bg-primary' : (s == 'PROCESSING' ? 'bg-info text-dark' : (s == 'PENDING_APPROVAL' ? 'bg-warning text-dark' : 'bg-secondary'))))}"
+                                              th:text="#{${'status.' + o.status.name()}}">Status</span>
+                                    </td>
+                                    <td>
+                                        <div th:if="${o.paymentScreenshotPath}">
+                                            <a th:href="${o.paymentScreenshotPath}" target="_blank" class="btn btn-sm btn-outline-primary">View</a>
+                                        </div>
+                                        <div th:unless="${o.paymentScreenshotPath}" class="small text-secondary">None</div>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/orders/track/{code}(code=${o.trackingCode})}" class="btn btn-sm btn-primary">Track Details</a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${#lists.isEmpty(orders)}" class="empty-state text-center py-4">
+                    <i class="bi bi-inbox display-4 text-secondary d-block mb-3"></i>
+                    <h2 class="h5 fw-bold text-secondary">No orders found for this search</h2>
+                    <p class="text-secondary small mb-0">Try a different phone number or date range.</p>
+                </div>
+            </div>
         </div>
 
         <!-- How it works accordion -->
