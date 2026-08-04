@@ -1,12 +1,10 @@
 package com.example.grocerystore.model;
 
 public enum OrderStatus {
-    PENDING_APPROVAL("Pending Approval"),
-    WAITING_FOR_PAYMENT("Waiting For Payment"),
-    PAYMENT_SUBMITTED("Payment Submitted"),
-    PROCESSING("Processing"),
-    OUT_FOR_DELIVERY("Out For Delivery"),
-    COMPLETED("Completed"),
+    PAYMENT_SUBMITTED("Pending Payment Verification"),
+    PROCESSING("Processing & Packing"),
+    OUT_FOR_DELIVERY("Out for Delivery"),
+    COMPLETED("Delivered"),
     CANCELLED("Cancelled");
 
     private final String label;

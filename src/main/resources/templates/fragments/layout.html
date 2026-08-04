@@ -82,31 +82,8 @@
     </div>
     <div th:unless="${order.status.name() == 'CANCELLED'}" class="order-stepper" aria-label="Order progress">
 
-        <!-- Step 1: Order Placed -->
-        <div th:with="done=${order.status.name() != 'PENDING_APPROVAL'},
-                      active=${order.status.name() == 'PENDING_APPROVAL'}"
-             class="stepper-step"
-             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
-            <div class="stepper-icon">
-                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-bag-check'}"></i>
-            </div>
-            <div class="stepper-label">Order Placed</div>
-            <div class="stepper-sublabel">Pending approval</div>
-        </div>
-
-        <!-- Step 2: Payment Approved -->
-        <div th:with="done=${#lists.contains({'PAYMENT_SUBMITTED','PROCESSING','OUT_FOR_DELIVERY','COMPLETED'}, order.status.name())},
-                      active=${order.status.name() == 'WAITING_FOR_PAYMENT'}"
-             class="stepper-step"
-             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
-            <div class="stepper-icon">
-                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-shield-check'}"></i>
-            </div>
-            <div class="stepper-label">Approved</div>
-            <div class="stepper-sublabel">Await payment</div>
-        </div>
-
-        <!-- Step 3: Payment Received -->
+        <!-- New simplified 4-step stepper for direct-checkout flow -->
+        <!-- Step 1: Payment Submitted -->
         <div th:with="done=${#lists.contains({'PROCESSING','OUT_FOR_DELIVERY','COMPLETED'}, order.status.name())},
                       active=${order.status.name() == 'PAYMENT_SUBMITTED'}"
              class="stepper-step"
@@ -114,23 +91,35 @@
             <div class="stepper-icon">
                 <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-credit-card'}"></i>
             </div>
-            <div class="stepper-label">Payment</div>
-            <div class="stepper-sublabel">Under review</div>
+            <div class="stepper-label">Payment Submitted</div>
+            <div class="stepper-sublabel">Under verification</div>
         </div>
 
-        <!-- Step 4: Processing / Out for Delivery -->
-        <div th:with="done=${order.status.name() == 'COMPLETED'},
-                      active=${order.status.name() == 'PROCESSING' || order.status.name() == 'OUT_FOR_DELIVERY'}"
+        <!-- Step 2: Processing -->
+        <div th:with="done=${#lists.contains({'OUT_FOR_DELIVERY','COMPLETED'}, order.status.name())},
+                      active=${order.status.name() == 'PROCESSING'}"
              class="stepper-step"
              th:classappend="${done ? 'done' : (active ? 'active' : '')}">
             <div class="stepper-icon">
-                <i th:class="${done ? 'bi bi-check-lg' : (order.status.name() == 'OUT_FOR_DELIVERY' ? 'bi bi-truck' : 'bi bi-box-seam')}"></i>
+                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-box-seam'}"></i>
             </div>
-            <div class="stepper-label">In Delivery</div>
-            <div class="stepper-sublabel" th:text="${order.status.name() == 'OUT_FOR_DELIVERY' ? 'Out for delivery' : 'Packing'}">Packing</div>
+            <div class="stepper-label">Processing</div>
+            <div class="stepper-sublabel">Packing & Dispatch prep</div>
         </div>
 
-        <!-- Step 5: Delivered -->
+        <!-- Step 3: Out for Delivery -->
+        <div th:with="done=${order.status.name() == 'COMPLETED'},
+                      active=${order.status.name() == 'OUT_FOR_DELIVERY'}"
+             class="stepper-step"
+             th:classappend="${done ? 'done' : (active ? 'active' : '')}">
+            <div class="stepper-icon">
+                <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-truck'}"></i>
+            </div>
+            <div class="stepper-label">Out for Delivery</div>
+            <div class="stepper-sublabel">On the way to customer</div>
+        </div>
+
+        <!-- Step 4: Delivered -->
         <div th:with="active=${order.status.name() == 'COMPLETED'}"
              class="stepper-step"
              th:classappend="${active ? 'done' : ''}">
@@ -157,7 +146,6 @@
                 <h3 class="h6 fw-bold" th:text="#{footer.quick}">Quick Links</h3>
                 <ul class="list-unstyled footer-links">
                     <li><a th:href="@{/}" th:text="#{nav.products}">Products</a></li>
-                    <li><a th:href="@{/track}" th:text="#{nav.orderHistory}">Order History</a></li>
                     <li><a th:href="@{/track}" th:text="#{nav.track}">Track Order</a></li>
                     <li><a th:href="@{/cart}" th:text="#{nav.cart}">Cart</a></li>
                     <li><a th:href="@{/login}" th:text="#{nav.staff}">Staff Portal</a></li>

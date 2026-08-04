@@ -24,7 +24,7 @@
                 <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
                     <div>
                         <h1 class="h4 fw-bold mb-1">
-                            Order <span class="text-success" th:text="'#' + ${order.id}">1</span>
+                            Order <span class="text-success" th:text="${order.trackingCode}">OD-00001</span>
                         </h1>
                         <p class="text-secondary mb-0 fw-medium" th:text="${order.customerName}">Customer</p>
                         <div class="tracking-code mt-2">
@@ -46,136 +46,112 @@
                 <!-- Status-specific content -->
                 <div th:switch="${order.status.name()}">
 
-                    <!-- PENDING_APPROVAL -->
-                    <div th:case="'PENDING_APPROVAL'" class="alert alert-warning d-flex align-items-start gap-2 mb-0">
-                        <i class="bi bi-hourglass-split fs-5 flex-shrink-0 mt-1"></i>
-                        <div>
-                            <strong>Waiting for stock approval.</strong><br>
-                            No payment is required yet. Please save this page link and refresh later.
-                        </div>
-                    </div>
-
-                    <!-- WAITING_FOR_PAYMENT -->
-                    <div th:case="'WAITING_FOR_PAYMENT'">
-                        <div class="payment-ready-banner mb-3">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <div>
-                                <strong>Your order is approved — please pay now.</strong>
-                                <span>Pay using KPay or Wave Money, then upload your payment screenshot below.</span>
-                            </div>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-sm-6">
-                                <div class="payment-card">
-                                    <img th:src="@{/images/kpay-qr.svg}" alt="KPay QR code">
-                                    <strong>KPay</strong>
-                                    <span th:text="${kpayPhone}">phone</span>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="payment-card">
-                                    <img th:src="@{/images/wave-qr.svg}" alt="Wave Money QR code">
-                                    <strong>Wave Money</strong>
-                                    <span th:text="${wavePhone}">phone</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form id="paymentUploadForm"
-                              th:action="@{/orders/track/{code}/payment(code=${order.trackingCode})}"
-                              method="post" enctype="multipart/form-data" class="upload-panel">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="_csrf_token">
-
-                            <label class="form-label fw-bold mb-1" for="screenshotInput">
-                                <i class="bi bi-cloud-arrow-up me-1"></i> Upload Payment Screenshot
-                            </label>
-                            <p class="text-secondary small mb-3">
-                                Delivery will be arranged after our team confirms your payment.
-                            </p>
-
-                            <div id="dropZone" class="border-2 rounded-3 p-4 text-center"
-                                 style="border: 2px dashed #86efac; background: #f0fdf4; cursor: pointer; transition: all .2s;">
-                                <input id="screenshotInput" class="d-none" type="file" name="screenshot" accept="image/*" required>
-                                <div id="dropInner">
-                                    <i class="bi bi-image fs-1 text-success opacity-50"></i>
-                                    <div class="mt-2 fw-semibold text-secondary">Drag &amp; drop image here</div>
-                                    <div class="small text-secondary">or <span class="text-success fw-semibold">click to browse</span></div>
-                                </div>
-                                <div id="previewArea" class="mt-3 d-none">
-                                    <img id="previewImage" src="#" alt="Preview"
-                                         style="max-width:100%; max-height:240px; border-radius:8px; display:block; margin:0 auto;">
-                                    <div id="uploadStatus" class="mt-2 small"></div>
-                                </div>
-                            </div>
-
-                            <button id="uploadBtn" class="btn btn-success btn-lg w-100 mt-3" type="button" disabled>
-                                <i class="bi bi-upload me-1"></i> Upload Screenshot
-                            </button>
-                        </form>
-
-                        <script>
-                            (function(){
-                                const dropZone = document.getElementById('dropZone');
-                                const input = document.getElementById('screenshotInput');
-                                const previewArea = document.getElementById('previewArea');
-                                const previewImage = document.getElementById('previewImage');
-                                const uploadBtn = document.getElementById('uploadBtn');
-                                const uploadStatus = document.getElementById('uploadStatus');
-                                const form = document.getElementById('paymentUploadForm');
-                                const csrfToken = document.getElementById('_csrf_token').value;
-
-                                function showPreview(file) {
-                                    const reader = new FileReader();
-                                    reader.onload = e => {
-                                        previewImage.src = e.target.result;
-                                        previewArea.classList.remove('d-none');
-                                    };
-                                    reader.readAsDataURL(file);
-                                }
-
-                                dropZone.addEventListener('click', () => input.click());
-                                input.addEventListener('change', e => {
-                                    const file = e.target.files[0];
-                                    if (file) { showPreview(file); uploadBtn.disabled = false; }
-                                });
-                                dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor='#16a34a'; dropZone.style.background='#dcfce7'; });
-                                dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor='#86efac'; dropZone.style.background='#f0fdf4'; });
-                                dropZone.addEventListener('drop', e => {
-                                    e.preventDefault();
-                                    dropZone.style.borderColor='#86efac'; dropZone.style.background='#f0fdf4';
-                                    const file = e.dataTransfer.files[0];
-                                    if (file) { input.files = e.dataTransfer.files; showPreview(file); uploadBtn.disabled = false; }
-                                });
-
-                                uploadBtn.addEventListener('click', () => {
-                                    if (!input.files[0]) return;
-                                    uploadBtn.disabled = true;
-                                    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
-                                    const fd = new FormData();
-                                    fd.append('screenshot', input.files[0]);
-                                    fetch(form.action, {
-                                        method: 'POST',
-                                        headers: { 'X-CSRF-TOKEN': csrfToken },
-                                        body: fd
-                                    }).then(r => {
-                                        if (r.redirected) { window.location = r.url; }
-                                        else { uploadStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Upload completed. Refreshing...</span>'; setTimeout(()=>location.reload(), 1200); }
-                                    }).catch(() => {
-                                        uploadStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Upload failed. Please try again.</span>';
-                                        uploadBtn.disabled = false;
-                                        uploadBtn.innerHTML = '<i class="bi bi-upload me-1"></i> Upload Screenshot';
-                                    });
-                                });
-                            })();
-                        </script>
-                    </div>
-
                     <!-- PAYMENT_SUBMITTED -->
-                    <div th:case="'PAYMENT_SUBMITTED'" class="alert alert-info d-flex align-items-start gap-2 mb-0">
-                        <i class="bi bi-clock-history fs-5 flex-shrink-0 mt-1"></i>
-                        <div>
-                            <strong>Payment screenshot received.</strong><br>
-                            Our team is reviewing your payment. We'll update the status shortly.
+                    <div th:case="'PAYMENT_SUBMITTED'">
+                        <div th:if="${order.paymentScreenshotPath == null}" class="mb-0">
+                            <div class="alert alert-info d-flex align-items-start gap-2 mb-3">
+                                <i class="bi bi-info-circle fs-5 flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Upload payment screenshot (optional).</strong><br>
+                                    If you have already uploaded a payment screenshot during checkout, it will appear on the right.
+                                </div>
+                            </div>
+
+                            <form id="paymentUploadForm"
+                                  th:action="@{/orders/track/{code}/payment(code=${order.trackingCode})}"
+                                  method="post" enctype="multipart/form-data" class="upload-panel">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="_csrf_token">
+
+                                <label class="form-label fw-bold mb-1" for="screenshotInput">
+                                    <i class="bi bi-cloud-arrow-up me-1"></i> Upload Payment Screenshot
+                                </label>
+                                <p class="text-secondary small mb-3">
+                                    Delivery will be arranged after our team confirms your payment.
+                                </p>
+
+                                <div id="dropZone" class="border-2 rounded-3 p-4 text-center"
+                                     style="border: 2px dashed #86efac; background: #f0fdf4; cursor: pointer; transition: all .2s;">
+                                    <input id="screenshotInput" class="d-none" type="file" name="screenshot" accept="image/*" required>
+                                    <div id="dropInner">
+                                        <i class="bi bi-image fs-1 text-success opacity-50"></i>
+                                        <div class="mt-2 fw-semibold text-secondary">Drag &amp; drop image here</div>
+                                        <div class="small text-secondary">or <span class="text-success fw-semibold">click to browse</span></div>
+                                    </div>
+                                    <div id="previewArea" class="mt-3 d-none">
+                                        <img id="previewImage" src="#" alt="Preview"
+                                             style="max-width:100%; max-height:240px; border-radius:8px; display:block; margin:0 auto;">
+                                        <div id="uploadStatus" class="mt-2 small"></div>
+                                    </div>
+                                </div>
+
+                                <button id="uploadBtn" class="btn btn-success btn-lg w-100 mt-3" type="button" disabled>
+                                    <i class="bi bi-upload me-1"></i> Upload Screenshot
+                                </button>
+                            </form>
+
+                            <script>
+                                (function(){
+                                    const dropZone = document.getElementById('dropZone');
+                                    const input = document.getElementById('screenshotInput');
+                                    const previewArea = document.getElementById('previewArea');
+                                    const previewImage = document.getElementById('previewImage');
+                                    const uploadBtn = document.getElementById('uploadBtn');
+                                    const uploadStatus = document.getElementById('uploadStatus');
+                                    const form = document.getElementById('paymentUploadForm');
+                                    const csrfToken = document.getElementById('_csrf_token').value;
+
+                                    function showPreview(file) {
+                                        const reader = new FileReader();
+                                        reader.onload = e => {
+                                            previewImage.src = e.target.result;
+                                            previewArea.classList.remove('d-none');
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+
+                                    dropZone.addEventListener('click', () => input.click());
+                                    input.addEventListener('change', e => {
+                                        const file = e.target.files[0];
+                                        if (file) { showPreview(file); uploadBtn.disabled = false; }
+                                    });
+                                    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor='#16a34a'; dropZone.style.background='#dcfce7'; });
+                                    dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor='#86efac'; dropZone.style.background='#f0fdf4'; });
+                                    dropZone.addEventListener('drop', e => {
+                                        e.preventDefault();
+                                        dropZone.style.borderColor='#86efac'; dropZone.style.background='#f0fdf4';
+                                        const file = e.dataTransfer.files[0];
+                                        if (file) { input.files = e.dataTransfer.files; showPreview(file); uploadBtn.disabled = false; }
+                                    });
+
+                                    uploadBtn.addEventListener('click', () => {
+                                        if (!input.files[0]) return;
+                                        uploadBtn.disabled = true;
+                                        uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading...';
+                                        const fd = new FormData();
+                                        fd.append('screenshot', input.files[0]);
+                                        fetch(form.action, {
+                                            method: 'POST',
+                                            headers: { 'X-CSRF-TOKEN': csrfToken },
+                                            body: fd
+                                        }).then(r => {
+                                            if (r.redirected) { window.location = r.url; }
+                                            else { uploadStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Upload completed. Refreshing...</span>'; setTimeout(()=>location.reload(), 1200); }
+                                        }).catch(() => {
+                                            uploadStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Upload failed. Please try again.</span>';
+                                            uploadBtn.disabled = false;
+                                            uploadBtn.innerHTML = '<i class="bi bi-upload me-1"></i> Upload Screenshot';
+                                        });
+                                    });
+                                })();
+                            </script>
+                        </div>
+
+                        <div th:if="${order.paymentScreenshotPath != null}" class="alert alert-info d-flex align-items-start gap-2 mb-0">
+                            <i class="bi bi-clock-history fs-5 flex-shrink-0 mt-1"></i>
+                            <div>
+                                <strong>Payment screenshot received.</strong><br>
+                                Our team is reviewing your payment. We'll update the status shortly.
+                            </div>
                         </div>
                     </div>
 

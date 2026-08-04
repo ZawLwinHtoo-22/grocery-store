@@ -40,7 +40,7 @@ public class CustomerOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
-    private OrderStatus status = OrderStatus.PENDING_APPROVAL;
+    private OrderStatus status = OrderStatus.PAYMENT_SUBMITTED;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;

@@ -47,7 +47,8 @@ public class OrderService {
         order.setCustomerName(form.getCustomerName());
         order.setPhoneNumber(form.getPhoneNumber());
         order.setDeliveryAddress(form.getDeliveryAddress());
-        order.setStatus(OrderStatus.PENDING_APPROVAL);
+        // New flow: customer submits payment at checkout -> initial status is PAYMENT_SUBMITTED (pending verification)
+        order.setStatus(OrderStatus.PAYMENT_SUBMITTED);
 
         BigDecimal total = BigDecimal.ZERO;
         for (CartItem cartItem : cart.getItems()) {
@@ -180,14 +181,16 @@ public class OrderService {
 
     @Transactional
     public void approve(Long orderId) {
+        // Admin payment verification -> PAYMENT_SUBMITTED -> PROCESSING
         CustomerOrder order = findWithItems(orderId);
-        requireStatus(order, OrderStatus.PENDING_APPROVAL);
-        order.setStatus(OrderStatus.WAITING_FOR_PAYMENT);
+        requireStatus(order, OrderStatus.PAYMENT_SUBMITTED);
+        order.setStatus(OrderStatus.PROCESSING);
         order.setUpdatedAt(LocalDateTime.now());
     }
 
     @Transactional
     public void markProcessing(Long orderId) {
+        // Kept for compatibility: mark Processing from PAYMENT_SUBMITTED
         CustomerOrder order = findWithItems(orderId);
         requireStatus(order, OrderStatus.PAYMENT_SUBMITTED);
         order.setStatus(OrderStatus.PROCESSING);
@@ -205,9 +208,9 @@ public class OrderService {
     @Transactional
     public void confirm(Long orderId) {
         CustomerOrder order = findWithItems(orderId);
-        // Allow confirming from PAYMENT_SUBMITTED (fast path) or OUT_FOR_DELIVERY (standard path)
-        if (order.getStatus() != OrderStatus.PAYMENT_SUBMITTED && order.getStatus() != OrderStatus.OUT_FOR_DELIVERY) {
-            throw new IllegalStateException("Order must be in Payment Submitted or Out For Delivery state to confirm.");
+        // New flow: only allow completing from OUT_FOR_DELIVERY
+        if (order.getStatus() != OrderStatus.OUT_FOR_DELIVERY) {
+            throw new IllegalStateException("Order must be Out For Delivery to confirm completion.");
         }
         order.setStatus(OrderStatus.COMPLETED);
         order.setUpdatedAt(LocalDateTime.now());
@@ -236,7 +239,7 @@ public class OrderService {
     }
 
     private void submitPayment(CustomerOrder order, MultipartFile screenshot) throws IOException {
-        requireStatus(order, OrderStatus.WAITING_FOR_PAYMENT);
+        // Allow submitting payment screenshot (no strict previous-status requirement in fast checkout flow)
         if (screenshot == null || screenshot.isEmpty()) {
             throw new IllegalArgumentException("Payment screenshot is required");
         }
@@ -244,6 +247,7 @@ public class OrderService {
         // Upload screenshot to Cloudinary and store the returned secure URL on the order
         String uploadedUrl = cloudinaryService.uploadImage(screenshot);
         order.setPaymentScreenshotPath(uploadedUrl);
+        // Keep order in PAYMENT_SUBMITTED while awaiting admin verification
         order.setStatus(OrderStatus.PAYMENT_SUBMITTED);
         order.setUpdatedAt(LocalDateTime.now());
     }

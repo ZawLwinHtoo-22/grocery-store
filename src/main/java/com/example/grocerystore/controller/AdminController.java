@@ -141,7 +141,7 @@ public class AdminController {
     public String approveOrder(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         try {
             orderService.approve(id);
-            redirectAttributes.addFlashAttribute("success", "Order approved. Customer can now submit payment.");
+            redirectAttributes.addFlashAttribute("success", "Payment verified. Order is now Processing.");
         } catch (IllegalStateException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
         }
@@ -209,7 +209,6 @@ public class AdminController {
         try {
             switch (status) {
                 case "APPROVE":
-                case "WAITING_FOR_PAYMENT":
                     orderService.approve(id);
                     redirectAttributes.addFlashAttribute("success", "Order approved.");
                     break;
