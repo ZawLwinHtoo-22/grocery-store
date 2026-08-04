@@ -43,15 +43,27 @@ public class AdminController {
     }
 
     @GetMapping({"", "/dashboard"})
-    public String dashboard(@RequestParam(required = false) OrderStatus status,
+    public String dashboard(@RequestParam(required = false) String status,
                             @RequestParam(required = false) String query,
                             @RequestParam(required = false) String from,
                             @RequestParam(required = false) String to,
                             Model model) {
+        // Parse dates
         LocalDate fromDate = (from != null && !from.isBlank()) ? LocalDate.parse(from) : null;
         LocalDate toDate = (to != null && !to.isBlank()) ? LocalDate.parse(to) : null;
 
-        addDashboardModel(model, status, query, fromDate, toDate, new Product());
+        // Robustly parse status: avoid binding errors when status param is "null" or empty
+        OrderStatus selectedStatus = null;
+        if (status != null && !status.isBlank() && !"null".equalsIgnoreCase(status)) {
+            try {
+                selectedStatus = OrderStatus.valueOf(status);
+            } catch (IllegalArgumentException ex) {
+                // ignore invalid status and treat as null (All)
+                selectedStatus = null;
+            }
+        }
+
+        addDashboardModel(model, selectedStatus, query, fromDate, toDate, new Product());
 
         // Analytics range: default last 30 days
         java.time.LocalDateTime end = java.time.LocalDateTime.now();
