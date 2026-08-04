@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rice & Oil Store</title>
+    <title>မြတ်မွန် ဆန်ဆိုင်</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
@@ -17,11 +17,12 @@
         <div class="store-hero-copy">
             <p class="text-uppercase small text-success fw-semibold mb-2" th:text="#{home.badge}">Fresh stock, current prices</p>
             <h1 class="display-6 fw-bold mb-2" th:text="#{home.title}">Rice and cooking oil delivered to your door.</h1>
-            <p class="text-secondary mb-0" th:text="#{home.subtitle}">Choose your items, place an order, then pay only after admin confirms stock availability.</p>
+        </br>
+            <p class="text-secondary mb-0" th:text="#{home.subtitle}">Choose your items, place an order, then pay with mobile wallet.</p>
         </div>
         <div class="hero-points" aria-label="Order benefits">
             <div><strong th:text="#{home.noAccount}">No account</strong><span th:text="#{home.noAccountText}">Order with name, phone, address</span></div>
-            <div><strong th:text="#{home.payLater}">Pay later</strong><span th:text="#{home.payLaterText}">After stock approval only</span></div>
+            <div><strong th:text="#{home.payLater}">Pay Mobile Wallet</strong><span th:text="#{home.payLaterText}">Can Pay Mobile Wallet</span></div>
             <div><strong th:text="#{home.easyTracking}">Easy tracking</strong><span th:text="#{home.easyTrackingText}">Use your order page</span></div>
         </div>
     </section>
@@ -84,13 +85,13 @@
                     <span th:text="#{home.chooseText}">Add rice or oil to cart.</span>
                 </div>
             </div>
-            <div class="col-6 col-lg-3">
+            <!-- <div class="col-6 col-lg-3">
                 <div class="process-card">
                     <i class="bi bi-clipboard-check" aria-hidden="true"></i>
-                    <strong th:text="#{home.approve}">Admin Approves</strong>
-                    <span th:text="#{home.approveText}">Stock is checked first.</span>
+                    <strong th:text="#{home.approve}">Mobile Wallet</strong>
+                    <span th:text="#{home.approveText}">Can Pay Mobile Wallet.</span>
                 </div>
-            </div>
+            </div> -->
             <div class="col-6 col-lg-3">
                 <div class="process-card">
                     <i class="bi bi-qr-code" aria-hidden="true"></i>
