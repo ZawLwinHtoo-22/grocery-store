@@ -141,15 +141,40 @@ public class AdminController {
 
         try {
             if (imageFile != null && !imageFile.isEmpty()) {
-                String uploadedImageUrl = cloudinaryService.uploadImage(imageFile);
-                product.setImageUrl(uploadedImageUrl);
+                try {
+                    // Try Cloudinary upload first (existing service)
+                    if (cloudinaryService != null) {
+                        String uploadedImageUrl = cloudinaryService.uploadImage(imageFile);
+                        product.setImageUrl(uploadedImageUrl);
+                    } else {
+                        throw new IOException("Cloudinary service not configured");
+                    }
+                } catch (IOException ex) {
+                    // Fallback: save locally under ./uploads/products and serve from /uploads/**
+                    try {
+                        java.nio.file.Path uploadDir = java.nio.file.Paths.get(System.getProperty("user.dir"), "uploads", "products");
+                        java.nio.file.Files.createDirectories(uploadDir);
+                        String original = imageFile.getOriginalFilename() != null ? imageFile.getOriginalFilename() : "img";
+                        String safeName = System.currentTimeMillis() + "-" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
+                        java.nio.file.Path dest = uploadDir.resolve(safeName);
+                        imageFile.transferTo(dest.toFile());
+                        // Set URL to static-accessible uploads path (ensure app serves file:uploads/ via static locations)
+                        product.setImageUrl("/uploads/products/" + safeName);
+                    } catch (Exception ioEx) {
+                        bindingResult.rejectValue("imageUrl", "error.product", "Failed to upload image: " + ioEx.getMessage());
+                        model.addAttribute("productForm", product);
+                        model.addAttribute("uploadError", ioEx.getMessage());
+                        return "admin/product-form";
+                    }
+                }
             }
 
             productService.save(product);
             redirectAttributes.addFlashAttribute("success", "Product saved successfully.");
-        } catch (IOException e) {
-            bindingResult.rejectValue("imageUrl", "error.product", "Failed to upload image.");
+        } catch (Exception e) {
+            bindingResult.rejectValue("imageUrl", "error.product", "Failed to save product: " + e.getMessage());
             model.addAttribute("productForm", product);
+            model.addAttribute("uploadError", e.getMessage());
             return "admin/product-form";
         }
 

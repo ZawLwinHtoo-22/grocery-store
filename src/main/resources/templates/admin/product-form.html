@@ -20,7 +20,10 @@
 
                     <form th:action="@{/admin/products/save}" th:object="${productForm}" method="post" enctype="multipart/form-data">
                         <input type="hidden" th:field="*{id}">
+                        <!-- Preserve existing image URL when editing -->
+                        <input type="hidden" th:field="*{imageUrl}">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div th:if="${uploadError}" class="alert alert-danger" th:text="${uploadError}"></div>
 
                         <div class="mb-3">
                             <label class="form-label">Product Name</label>
@@ -42,7 +45,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">Image</label>
-                            <input class="form-control" type="file" name="imageFile" accept="image/*">
+                            <input class="form-control" type="file" name="imageFile" accept="image/png, image/jpeg, image/webp">
                             <div class="mt-2" th:if="${productForm.imageUrl}">
                                 <div class="small text-secondary mb-1">Current image preview:</div>
                                 <img th:src="${productForm.imageUrl}" alt="Product image" class="img-fluid rounded" style="max-height:160px;">

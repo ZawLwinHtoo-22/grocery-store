@@ -1,0 +1,67 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="#{nav.userGuide}">User Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+<div th:replace="~{fragments/layout :: navbar}"></div>
+<main class="container py-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="h4 fw-bold mb-3">How to Order & Track — User Guide</h1>
+                    <p class="text-secondary">This guide explains the order lifecycle, payment, and tracking flow for customers.</p>
+
+                    <ol class="list-group list-group-numbered my-4">
+                        <li class="list-group-item">
+                            <strong>Choose Products</strong>
+                            <div class="small text-secondary">Browse products, add desired quantities to your cart.</div>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Checkout & Payment</strong>
+                            <div class="small text-secondary">Fill in your name, phone, delivery address and optionally upload your payment screenshot (or you can upload it after placing order on the tracking page).</div>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Order Created (OD-XXXXX)</strong>
+                            <div class="small text-secondary">After placing an order you receive a tracking code like <code>OD-00001</code>. Save it or bookmark the tracking link.</div>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Payment Verification</strong>
+                            <div class="small text-secondary">Our team reviews the payment screenshot. If approved, your order moves to Processing.</div>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Out for Delivery</strong>
+                            <div class="small text-secondary">When the order is dispatched, status updates to Out for Delivery.</div>
+                        </li>
+                        <li class="list-group-item">
+                            <strong>Delivered</strong>
+                            <div class="small text-secondary">Once delivered the order status will show Completed.</div>
+                        </li>
+                    </ol>
+
+                    <h5 class="mt-4">Tracking your order</h5>
+                    <p class="small text-secondary">Open the Track page and enter your tracking code or phone number. You can also use the date filters to find recent orders.</p>
+
+                    <h5 class="mt-4">Admin actions</h5>
+                    <p class="small text-secondary">Admins verify payments, mark orders Processing, Out for Delivery, and Completed. Contact support if you believe your order was handled incorrectly.</p>
+
+                    <div class="mt-4">
+                        <a th:href="@{/track}" class="btn btn-outline-primary me-2">Go to Track Page</a>
+                        <a th:href="@{/}" class="btn btn-outline-secondary">Back to Shop</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/layout :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

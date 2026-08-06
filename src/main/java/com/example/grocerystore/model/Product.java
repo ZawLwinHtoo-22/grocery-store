@@ -29,8 +29,7 @@ public class Product {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    @NotBlank
-    @Column(nullable = false, length = 500, columnDefinition = "NVARCHAR(500)")
+    @Column(nullable = true, length = 500, columnDefinition = "NVARCHAR(500)")
     private String imageUrl;
 
     @Column(nullable = false)

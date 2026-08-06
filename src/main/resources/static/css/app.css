@@ -135,8 +135,10 @@ body {
 
 .product-img {
     width: 100%;
+    height: 220px;
     aspect-ratio: 4 / 3;
     object-fit: cover;
+    /* background-color: #fdfdfd */
     background: var(--green-50);
 }
 
@@ -234,7 +236,7 @@ body {
 .detail-image {
     width: 100%;
     aspect-ratio: 4 / 3;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: var(--radius);
     background: var(--green-50);
 }

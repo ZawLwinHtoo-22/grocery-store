@@ -45,9 +45,7 @@ app:
     kpay-phone: "09 96 2800 540"
     wave-phone: "09 96 2800 540"
 
-# Cloudinary configuration. Set via environment variables in production:
-#   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
 cloudinary:
-cloud-name: ${dzq4fv63:}
-api-key: ${362331865784937:}
-api-secret: ${bSE0KQTaXpNirJ9Ef-FptCtgucs:}
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:dzq4fv63}
+  api-key: ${CLOUDINARY_API_KEY:362331865784937}
+  api-secret: ${CLOUDINARY_API_SECRET:bSE0KQTaXpNirJ9Ef-FptCtgucs}
