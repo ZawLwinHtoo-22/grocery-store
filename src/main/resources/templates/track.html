@@ -57,13 +57,65 @@
                                 </div>
                             </div>
 
+                            <!-- Prominent Payment Account Card with One-Click Copy -->
+                            <div class="card border-0 shadow-sm bg-light mb-3 rounded-3 overflow-hidden">
+                                <div class="card-header bg-success text-white py-2 fw-semibold d-flex align-items-center gap-2">
+                                    <i class="bi bi-wallet2"></i>
+                                    <span th:text="#{payment.accountInfo}">Payment Transfer Numbers (KPay / Wave)</span>
+                                </div>
+                                <div class="card-body py-3">
+                                    <div class="d-flex align-items-center justify-content-between bg-white p-3 rounded-3 border">
+                                        <div>
+                                            <div class="small text-muted" th:text="#{payment.accountName}">Account Name: Zaw Lwin Htoo</div>
+                                            <div class="fw-bold fs-4 text-dark font-monospace tracking-wider" id="paymentPhoneNum" th:text="#{payment.accountPhone}">09962800540</div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-success btn-sm d-flex align-items-center gap-1 rounded-pill px-3" onclick="copyPaymentNumber(this)">
+                                            <i class="bi bi-clipboard"></i>
+                                            <span class="copy-text" th:text="#{payment.btnCopy}">Copy</span>
+                                        </button>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <span class="badge bg-primary px-3 py-1">KBZPay</span>
+                                        <span class="badge bg-warning text-dark px-3 py-1">Wave Money</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <script th:inline="javascript">
+                                const msgCopied = /*[[#{payment.copiedNotice}]]*/ 'Copied!';
+                                const msgCopy = /*[[#{payment.btnCopy}]]*/ 'Copy';
+
+                                function copyPaymentNumber(btn) {
+                                    const phoneNum = "09962800540";
+                                    navigator.clipboard.writeText(phoneNum).then(() => {
+                                        const textSpan = btn.querySelector('.copy-text');
+                                        const icon = btn.querySelector('i');
+                                        
+                                        // Show success state
+                                        textSpan.innerText = msgCopied;
+                                        btn.classList.remove('btn-outline-success');
+                                        btn.classList.add('btn-success', 'text-white');
+                                        icon.className = 'bi bi-check-lg';
+                                        
+                                        // Reset after 2 seconds
+                                        setTimeout(() => {
+                                            textSpan.innerText = msgCopy;
+                                            btn.classList.remove('btn-success', 'text-white');
+                                            btn.classList.add('btn-outline-success');
+                                            icon.className = 'bi bi-clipboard';
+                                        }, 2000);
+                                    }).catch(err => console.error('Failed to copy: ', err));
+                                }
+                            </script>
+
                             <form id="paymentUploadForm"
                                   th:action="@{/orders/track/{code}/payment(code=${order.trackingCode})}"
                                   method="post" enctype="multipart/form-data" class="upload-panel">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="_csrf_token">
 
                                 <label class="form-label fw-bold mb-1" for="screenshotInput">
-                                    <i class="bi bi-cloud-arrow-up me-1"></i> Upload Payment Screenshot
+                                    <i class="bi bi-cloud-arrow-up me-1"></i>
+                                    <span th:text="#{payment.uploadInstruction}">Please upload your payment transfer screenshot below.</span>
                                 </label>
                                 <p class="text-secondary small mb-3">
                                     Delivery will be arranged after our team confirms your payment.
@@ -74,8 +126,7 @@
                                     <input id="screenshotInput" class="d-none" type="file" name="screenshot" accept="image/*" required>
                                     <div id="dropInner">
                                         <i class="bi bi-image fs-1 text-success opacity-50"></i>
-                                        <div class="mt-2 fw-semibold text-secondary">Drag &amp; drop image here</div>
-                                        <div class="small text-secondary">or <span class="text-success fw-semibold">click to browse</span></div>
+                                        <div class="mt-2 fw-semibold text-secondary" th:text="#{payment.dragDrop}">Drag &amp; drop image here or click to browse</div>
                                     </div>
                                     <div id="previewArea" class="mt-3 d-none">
                                         <img id="previewImage" src="#" alt="Preview"

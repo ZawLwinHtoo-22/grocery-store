@@ -134,6 +134,7 @@ public class StoreController {
         try {
             CustomerOrder order = orderService.createOrder(checkoutForm, cartService.getCart(session));
             cartService.clear(session);
+            OrderController.recordOrderInSession(session, order.getTrackingCode());
             return "redirect:/orders/track/" + order.getTrackingCode();
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("error", ex.getMessage());
@@ -155,9 +156,12 @@ public class StoreController {
     @GetMapping("/orders/track/{trackingCode}")
     public String track(@PathVariable String trackingCode,
                         Model model,
+                        HttpSession session,
                         RedirectAttributes redirectAttributes) {
         try {
-            model.addAttribute("order", orderService.findWithItemsByTrackingCode(trackingCode));
+            CustomerOrder order = orderService.findWithItemsByTrackingCode(trackingCode);
+            OrderController.recordOrderInSession(session, trackingCode);
+            model.addAttribute("order", order);
             model.addAttribute("kpayPhone", kpayPhone);
             model.addAttribute("wavePhone", wavePhone);
             return "track";
@@ -189,18 +193,13 @@ public class StoreController {
     @GetMapping("/orders/detail/{trackingCode}")
     public String orderDetail(@PathVariable String trackingCode, Model model, RedirectAttributes redirectAttributes) {
         try {
-            model.addAttribute("order", orderService.findWithItemsByTrackingCode(trackingCode));
+            CustomerOrder order = orderService.findWithItemsByTrackingCode(trackingCode);
+            model.addAttribute("order", order);
             return "order-detail";
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("error", "Order မတွေ့ပါ။ Tracking code ကို ပြန်စစ်ပေးပါ။");
             return "redirect:/track";
         }
-    }
-
-    @GetMapping("/orders/history")
-    public String orderHistoryForm(Model model) {
-        // Redirect legacy history route to unified /track page
-        return "redirect:/track";
     }
 
     @PostMapping("/track/search")
