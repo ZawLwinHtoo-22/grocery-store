@@ -34,7 +34,7 @@
                         </div>
                     </div>
                     <span class="badge rounded-pill status-badge"
-                          th:classappend="${order.status.name() == 'CANCELLED' ? ' cancelled' : ''}"
+                          th:classappend="${order.status.name() == 'CANCELLED' ? ' cancelled' : (order.status.name() == 'PENDING_PAYMENT' ? ' bg-warning text-dark' : '')}"
                           th:text="#{${'status.' + order.status.name()}}">Status</span>
                 </div>
 
@@ -46,9 +46,16 @@
                 <!-- Status-specific content -->
                 <div th:switch="${order.status.name()}">
 
-                    <!-- PAYMENT_SUBMITTED -->
-                    <div th:case="'PAYMENT_SUBMITTED'">
-                        <div th:if="${order.paymentScreenshotPath == null}" class="mb-0">
+                    <!-- PENDING_PAYMENT -->
+                    <div th:case="'PENDING_PAYMENT'">
+                        <div class="mb-0">
+                            <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                                <i class="bi bi-exclamation-triangle fs-5 flex-shrink-0 mt-1"></i>
+                                <div>
+                                    <strong>Please upload your payment screenshot.</strong><br>
+                                    Transfer the payment to our KPay / Wave account below and upload your slip screenshot to proceed.
+                                </div>
+                            </div>
                             <div class="alert alert-info d-flex align-items-start gap-2 mb-3">
                                 <i class="bi bi-info-circle fs-5 flex-shrink-0 mt-1"></i>
                                 <div>
@@ -196,11 +203,14 @@
                                 })();
                             </script>
                         </div>
+                    </div>
 
-                        <div th:if="${order.paymentScreenshotPath != null}" class="alert alert-info d-flex align-items-start gap-2 mb-0">
+                    <!-- PAYMENT_SUBMITTED -->
+                    <div th:case="'PAYMENT_SUBMITTED'">
+                        <div class="alert alert-info d-flex align-items-start gap-2 mb-0">
                             <i class="bi bi-clock-history fs-5 flex-shrink-0 mt-1"></i>
                             <div>
-                                <strong>Payment screenshot received.</strong><br>
+                                <strong>Payment screenshot received (Under Verification).</strong><br>
                                 Our team is reviewing your payment. We'll update the status shortly.
                             </div>
                         </div>

@@ -47,8 +47,8 @@ public class OrderService {
         order.setCustomerName(form.getCustomerName());
         order.setPhoneNumber(form.getPhoneNumber());
         order.setDeliveryAddress(form.getDeliveryAddress());
-        // New flow: customer submits payment at checkout -> initial status is PAYMENT_SUBMITTED (pending verification)
-        order.setStatus(OrderStatus.PAYMENT_SUBMITTED);
+        // Initial status is PENDING_PAYMENT (pending screenshot upload)
+        order.setStatus(OrderStatus.PENDING_PAYMENT);
 
         BigDecimal total = BigDecimal.ZERO;
         for (CartItem cartItem : cart.getItems()) {
@@ -181,18 +181,22 @@ public class OrderService {
 
     @Transactional
     public void approve(Long orderId) {
-        // Admin payment verification -> PAYMENT_SUBMITTED -> PROCESSING
+        // Admin payment verification -> PAYMENT_SUBMITTED or PENDING_PAYMENT -> PROCESSING
         CustomerOrder order = findWithItems(orderId);
-        requireStatus(order, OrderStatus.PAYMENT_SUBMITTED);
+        if (order.getStatus() != OrderStatus.PAYMENT_SUBMITTED && order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Order must be in Pending Payment or Payment Submitted status.");
+        }
         order.setStatus(OrderStatus.PROCESSING);
         order.setUpdatedAt(LocalDateTime.now());
     }
 
     @Transactional
     public void markProcessing(Long orderId) {
-        // Kept for compatibility: mark Processing from PAYMENT_SUBMITTED
+        // Kept for compatibility: mark Processing from PAYMENT_SUBMITTED or PENDING_PAYMENT
         CustomerOrder order = findWithItems(orderId);
-        requireStatus(order, OrderStatus.PAYMENT_SUBMITTED);
+        if (order.getStatus() != OrderStatus.PAYMENT_SUBMITTED && order.getStatus() != OrderStatus.PENDING_PAYMENT) {
+            throw new IllegalStateException("Order must be in Pending Payment or Payment Submitted status.");
+        }
         order.setStatus(OrderStatus.PROCESSING);
         order.setUpdatedAt(LocalDateTime.now());
     }

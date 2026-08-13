@@ -128,10 +128,10 @@
                                     </td>
                                     <td class="fw-bold" th:text="${@currency.format(o.totalAmount, #locale)}">0</td>
                                     <td>
-                                        <span class="badge rounded-pill"
-                                              th:with="s=${o.status.name()}"
-                                              th:classappend="${s == 'COMPLETED' ? 'bg-success' : (s == 'CANCELLED' ? 'bg-danger' : (s == 'OUT_FOR_DELIVERY' ? 'bg-primary' : (s == 'PROCESSING' ? 'bg-info text-dark' : (s == 'PENDING_APPROVAL' ? 'bg-warning text-dark' : 'bg-secondary'))))}"
-                                              th:text="#{${'status.' + o.status.name()}}">Status</span>
+                                         <span class="badge rounded-pill"
+                                               th:with="s=${o.status.name()}"
+                                               th:classappend="${s == 'COMPLETED' ? 'bg-success' : (s == 'CANCELLED' ? 'bg-danger' : (s == 'OUT_FOR_DELIVERY' ? 'bg-primary' : (s == 'PROCESSING' ? 'bg-info text-dark' : (s == 'PENDING_PAYMENT' ? 'bg-warning text-dark' : (s == 'PAYMENT_SUBMITTED' ? 'bg-purple' : 'bg-secondary')))))}"
+                                               th:text="#{${'status.' + o.status.name()}}">Status</span>
                                     </td>
                                     <td>
                                         <div th:if="${o.paymentScreenshotPath}">

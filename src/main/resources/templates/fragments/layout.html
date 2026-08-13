@@ -94,17 +94,18 @@
     </div>
     <div th:unless="${order.status.name() == 'CANCELLED'}" class="order-stepper" aria-label="Order progress">
 
-        <!-- New simplified 4-step stepper for direct-checkout flow -->
-        <!-- Step 1: Payment Submitted -->
+        <!-- Step 1: Payment / Payment Submitted -->
         <div th:with="done=${#lists.contains({'PROCESSING','OUT_FOR_DELIVERY','COMPLETED'}, order.status.name())},
-                      active=${order.status.name() == 'PAYMENT_SUBMITTED'}"
+                      active=${order.status.name() == 'PENDING_PAYMENT' or order.status.name() == 'PAYMENT_SUBMITTED'}"
              class="stepper-step"
              th:classappend="${done ? 'done' : (active ? 'active' : '')}">
             <div class="stepper-icon">
                 <i th:class="${done ? 'bi bi-check-lg' : 'bi bi-credit-card'}"></i>
             </div>
-            <div class="stepper-label">Payment Submitted</div>
-            <div class="stepper-sublabel">Under verification</div>
+            <div class="stepper-label"
+                 th:text="#{${order.status.name() == 'PENDING_PAYMENT' ? 'status.PENDING_PAYMENT' : 'status.PAYMENT_SUBMITTED'}}">Payment</div>
+            <div class="stepper-sublabel"
+                 th:text="#{${order.status.name() == 'PENDING_PAYMENT' ? 'stepper.pendingPaymentSub' : 'stepper.submittedPaymentSub'}}">Status</div>
         </div>
 
         <!-- Step 2: Processing -->

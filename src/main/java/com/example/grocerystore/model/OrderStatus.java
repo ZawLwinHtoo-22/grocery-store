@@ -1,6 +1,7 @@
 package com.example.grocerystore.model;
 
 public enum OrderStatus {
+    PENDING_PAYMENT("Pending Payment"),
     PAYMENT_SUBMITTED("Pending Payment Verification"),
     PROCESSING("Processing & Packing"),
     OUT_FOR_DELIVERY("Out for Delivery"),

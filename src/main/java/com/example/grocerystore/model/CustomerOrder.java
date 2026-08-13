@@ -40,7 +40,7 @@ public class CustomerOrder {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
-    private OrderStatus status = OrderStatus.PAYMENT_SUBMITTED;
+    private OrderStatus status = OrderStatus.PENDING_PAYMENT;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
@@ -129,6 +129,10 @@ public class CustomerOrder {
     }
 
     public String getPaymentScreenshotPath() {
+        return paymentScreenshotPath;
+    }
+
+    public String getPaymentSlipUrl() {
         return paymentScreenshotPath;
     }
 

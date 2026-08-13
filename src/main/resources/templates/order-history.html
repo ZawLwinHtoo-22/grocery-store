@@ -41,11 +41,10 @@
                     <div class="card-header bg-light border-0 d-flex justify-content-between align-items-center py-3">
                         <span class="fw-bold text-dark font-monospace" th:text="${o.trackingCode}">OD-00001</span>
                         <span class="badge rounded-pill"
-                              th:classappend="${o.status.name() == 'PENDING_APPROVAL' ? 'bg-warning text-dark' :
-                                              (o.status.name() == 'WAITING_FOR_PAYMENT' ? 'bg-warning text-dark' :
-                                              (o.status.name() == 'PAYMENT_SUBMITTED' ? 'bg-info text-dark' :
+                              th:classappend="${o.status.name() == 'PENDING_PAYMENT' ? 'bg-warning text-dark' :
+                                              (o.status.name() == 'PAYMENT_SUBMITTED' ? 'bg-purple' :
                                               (o.status.name() == 'PROCESSING' ? 'bg-primary' :
-                                              (o.status.name() == 'OUT_FOR_DELIVERY' ? 'bg-info' : 'bg-secondary'))))}"
+                                              (o.status.name() == 'OUT_FOR_DELIVERY' ? 'bg-info' : 'bg-secondary')))}"
                               th:text="#{${'status.' + o.status.name()}}">Status</span>
                     </div>
                     <div class="card-body">
