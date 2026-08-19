@@ -14,14 +14,14 @@
     <div th:replace="~{fragments/layout :: navbar}"></div>
     <div th:replace="~{fragments/layout :: alerts}"></div>
 
-    <main class="container py-4">
+    <main class="container py-3 py-md-4">
         <div class="d-flex flex-column flex-md-row justify-content-between gap-2 align-items-md-end mb-3">
             <div>
-                <h1 class="h3 fw-bold mb-1" th:text="#{cart.title}">Your Cart</h1>
+                <h1 class="h4 h3-md fw-bold mb-1" th:text="#{cart.title}">Your Cart</h1>
                 <p class="text-secondary mb-0" th:text="#{cart.subtitle}">Confirm quantities and enter delivery details.
                 </p>
             </div>
-            <a th:href="@{/}" class="btn btn-outline-success" th:text="#{cart.continueShopping}">Continue Shopping</a>
+            <a th:href="@{/}" class="btn btn-outline-success w-100 w-md-auto" th:text="#{cart.continueShopping}">Continue Shopping</a>
         </div>
 
         <div class="row g-4">

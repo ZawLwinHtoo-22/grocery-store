@@ -12,11 +12,11 @@
 <div th:replace="~{fragments/layout :: navbar}"></div>
 <div th:replace="~{fragments/layout :: alerts}"></div>
 
-<main class="container py-4">
+<main class="container py-3 py-md-4">
     <section class="store-hero mb-4">
         <div class="store-hero-copy">
             <p class="text-uppercase small text-success fw-semibold mb-2" th:text="#{home.badge}">Fresh stock, current prices</p>
-            <h1 class="display-6 fw-bold mb-2" th:text="#{home.title}">Rice and cooking oil delivered to your door.</h1>
+            <h1 class="fw-bold mb-2" th:text="#{home.title}">Rice and cooking oil delivered to your door.</h1>
         </br>
             <p class="text-secondary mb-0" th:text="#{home.subtitle}">Choose your items, place an order, then pay with mobile wallet.</p>
         </div>
@@ -29,7 +29,7 @@
 
     <div class="section-heading mb-3">
         <div>
-            <h2 class="h4 fw-bold mb-1" th:text="#{home.available}">Available Products</h2>
+            <h2 class="h5 h4-md fw-bold mb-1" th:text="#{home.available}">Available Products</h2>
             <p class="text-secondary mb-0" th:text="#{home.availableText}">Tap a product to view details, price, and delivery steps.</p>
         </div>
     </div>
@@ -73,7 +73,7 @@
     <section class="process-section mt-5">
         <div class="section-heading mb-3">
             <div>
-                <h2 class="h4 fw-bold mb-1" th:text="#{home.flow}">Simple Order Flow</h2>
+                <h2 class="h5 h4-md fw-bold mb-1" th:text="#{home.flow}">Simple Order Flow</h2>
                 <p class="text-secondary mb-0" th:text="#{home.flowText}">Designed for customers who want clear steps and no registration.</p>
             </div>
         </div>

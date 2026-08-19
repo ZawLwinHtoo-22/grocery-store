@@ -52,6 +52,12 @@
 /* ── Base ────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
+html, body {
+    /* Prevent horizontal overflow on any viewport */
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--ink-50);
@@ -76,20 +82,26 @@ body {
 .summary-panel,
 .admin-panel,
 .login-panel {
-    padding: 1.5rem;
+    padding: clamp(.875rem, 4vw, 1.5rem);
 }
 
 /* ── Store Hero ──────────────────────────────────────────────── */
 .store-hero {
-    padding: clamp(1.5rem, 4vw, 2.5rem);
+    padding: clamp(1rem, 4vw, 2.5rem);
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
-    gap: 1.5rem;
+    gap: 1.25rem;
     align-items: center;
     background:
         linear-gradient(135deg, rgba(255,255,255,.98) 0%, rgba(220,245,231,.92) 100%),
         url("/images/rice-bag.svg") right bottom / 320px auto no-repeat;
     overflow: hidden;
+}
+
+/* Scale hero heading on all screen sizes */
+.store-hero h1 {
+    font-size: clamp(1.35rem, 5vw, 2.5rem);
+    line-height: 1.25;
 }
 
 .store-hero-copy { max-width: 720px; }
@@ -217,13 +229,22 @@ body {
     gap: 1rem;
 }
 .cart-thumb {
-    width: 72px; height: 72px;
+    width: 64px; height: 64px;
     object-fit: cover;
     border-radius: var(--radius);
     background: var(--green-50);
     flex-shrink: 0;
 }
 .qty-input { max-width: 88px; }
+
+/* Thumb-friendly form inputs & buttons on touch devices */
+.form-control, .form-select {
+    min-height: 44px;
+}
+.btn-sm { min-height: 38px; }
+.btn:not(.btn-sm):not(.btn-link):not(.btn-close):not(.accordion-button):not(.navbar-toggler) {
+    min-height: 44px;
+}
 
 /* ── Product Detail ──────────────────────────────────────────── */
 .detail-image-wrap {
@@ -437,7 +458,8 @@ html[lang="my"] .price {
 
 .upload-panel {
     border: 2px dashed var(--green-200);
-    border-radius: var(--radius-lg); background: #fbfffc; padding: 1.1rem;
+    border-radius: var(--radius-lg); background: #fbfffc;
+    padding: clamp(.75rem, 3vw, 1.1rem);
     transition: border-color var(--transition), background var(--transition);
 }
 .upload-panel.drag-over {
@@ -583,36 +605,125 @@ html[lang="my"] .price {
 }
 .fade-in-up { animation: fadeInUp .35s ease forwards; }
 
+/* ── Custom responsive utilities (Bootstrap gaps) ───────────────────────── */
+/* min-w-0: prevents flex children from overflowing their container */
+.min-w-0 { min-width: 0; }
+
+/* w-md-auto: full-width on xs, auto on md+ */
+@media (min-width: 768px) {
+    .w-md-auto { width: auto !important; }
+}
+
+/* Section headings scale up on md+ */
+@media (min-width: 768px) {
+    .h4-md { font-size: 1.5rem; }   /* Bootstrap h4 */
+    .h3-md { font-size: 1.75rem; }  /* Bootstrap h3 */
+}
+
 /* ── Responsive ──────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
+    /* Layout */
     .store-hero {
         grid-template-columns: 1fr;
-        background-size: 180px auto;
+        background-size: 140px auto;
         background-position: right top;
+        gap: 1rem;
     }
     .section-heading { display: block; }
+
+    /* Cart */
     .cart-row { align-items: flex-start; flex-wrap: wrap; }
-    .cart-row > .text-end { width: 100%; text-align: left !important; padding-left: 88px; }
+    .cart-row > .text-end { width: 100%; text-align: left !important; padding-left: 80px; }
+    .cart-thumb { width: 56px; height: 56px; }
+
+    /* Status timeline */
     .status-timeline { grid-template-columns: repeat(2, 1fr); }
+
+    /* Button groups */
     .btn-group.flex-wrap { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
     .btn-group.flex-wrap .btn { border-radius: .375rem !important; margin: .15rem; }
+
+    /* Info band */
     .info-band, .footer-bottom { display: block; }
     .info-band .btn { width: 100%; margin-top: 1rem; }
+
+    /* Detail page */
     .detail-panel { position: static; }
     .detail-cart-form .input-group { display: grid; }
     .detail-cart-form .form-control,
     .detail-cart-form .btn { width: 100%; border-radius: .5rem !important; }
-    .order-stepper { gap: 0; }
-    .stepper-step:not(:last-child)::after { display: none; }
-    .order-stepper { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
-    .stepper-step { flex: none; }
+
+    /* ── Stepper: scrollable horizontal strip on mobile ── */
+    .order-stepper-wrap {
+        /* Horizontal scroll container — no bleed-out on body */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;          /* Firefox */
+        margin-left: -1px;
+        margin-right: -1px;
+        padding-bottom: 4px;            /* room for the scroll indicator */
+    }
+    .order-stepper-wrap::-webkit-scrollbar { display: none; }
+
+    .order-stepper {
+        /* Single flex row — wider than viewport so it scrolls */
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 0;
+        padding: .75rem 0;
+        /* Min total: 4 steps × 80px + connectors */
+        min-width: max-content;
+    }
+
+    .stepper-step {
+        flex: 0 0 80px;              /* fixed compact width per step */
+        min-width: 80px;
+        scroll-snap-align: start;
+    }
+
+    /* Keep connector lines — they look good as a thin green trail */
+    .stepper-step:not(:last-child)::after {
+        left: calc(50% + 16px);
+        right: calc(-50% + 16px);
+        top: 16px;
+    }
+
+    /* Labels — tighter on mobile */
+    .stepper-label  { font-size: .68rem; }
+    .stepper-sublabel { font-size: .62rem; }
+    .stepper-icon   { width: 34px; height: 34px; font-size: .9rem; }
+
+    /* Admin */
     .admin-search-bar { flex-direction: column; align-items: stretch; }
     .admin-search-bar input { width: 100% !important; }
 }
 
 @media (max-width: 575.98px) {
-    body { font-size: 1.02rem; }
-    .summary-panel, .admin-panel, .login-panel { padding: 1rem; }
-    .analytics-card { padding: .85rem 1rem; }
-    .order-stepper { grid-template-columns: repeat(2, 1fr); }
+    /* Fine-tune xs (phones < 576px) */
+    .summary-panel, .admin-panel, .login-panel { padding: .875rem; }
+    .analytics-card { padding: .75rem .875rem; }
+
+    /* Hero heading extra-small cap */
+    .store-hero h1 { font-size: clamp(1.15rem, 6vw, 1.5rem); }
+
+    /* Stepper steps even tighter */
+    .stepper-step   { flex: 0 0 72px; min-width: 72px; }
+    .stepper-label  { font-size: .64rem; }
+    .stepper-sublabel { font-size: .58rem; }
+    .stepper-icon   { width: 30px; height: 30px; font-size: .8rem; }
+
+    /* Drop zone compactness */
+    #dropZone { padding: .75rem !important; }
+    #dropZone .bi-image { font-size: 1.75rem !important; }
+
+    /* Payment phone number — don't overflow narrow screens */
+    #paymentPhoneNum { font-size: 1.15rem !important; }
+
+    /* Nav button full width when stacked */
+    .track-nav-actions { display: grid !important; grid-template-columns: 1fr 1fr; gap: .5rem; }
+    .track-nav-actions .btn { width: 100%; }
+
+    /* Footer bottom wrap */
+    .footer-bottom { flex-direction: column; gap: .25rem; }
 }
