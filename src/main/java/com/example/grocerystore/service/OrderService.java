@@ -61,8 +61,8 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setProduct(product);
             item.setQuantity(cartItem.getQuantity());
-            item.setUnitPrice(product.getPrice());
-            item.setLineTotal(product.getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
+            item.setUnitPrice(product.getEffectivePrice()); // uses discountPrice when valid
+            item.setLineTotal(product.getEffectivePrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
             order.addItem(item);
             total = total.add(item.getLineTotal());
         }

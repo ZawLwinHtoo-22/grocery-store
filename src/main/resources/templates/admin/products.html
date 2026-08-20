@@ -31,7 +31,8 @@
                     <tr>
                         <th style="width:80px"></th>
                         <th>Product</th>
-                        <th style="width:120px">Price</th>
+                        <th style="width:130px">Price</th>
+                        <th style="width:130px">Discount Price</th>
                         <th style="width:120px">Unit</th>
                         <th style="width:140px">Stock</th>
                         <th class="text-end" style="width:180px">Actions</th>
@@ -46,6 +47,11 @@
                             <div class="fw-semibold" th:text="${p.name}">Product Name</div>
                         </td>
                         <td class="fw-bold" th:text="${@currency.format(p.price, #locale)}">0</td>
+                        <td>
+                            <span th:if="${p.hasDiscount()}" class="text-danger fw-semibold"
+                                  th:text="${@currency.format(p.discountPrice, #locale)}">—</span>
+                            <span th:unless="${p.hasDiscount()}" class="text-secondary">—</span>
+                        </td>
                         <td th:text="${p.unitLabel}">unit</td>
                         <td>
                             <span th:classappend="${p.available} ? 'badge bg-success' : 'badge bg-danger'" th:text="${p.available} ? 'In Stock' : 'Out of Stock'">Stock</span>

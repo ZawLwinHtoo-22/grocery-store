@@ -11,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Entity
 @Table(name = "products")
@@ -29,6 +30,10 @@ public class Product {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
+    /** Optional discount price. If set and lower than price, it is used as the effective selling price. */
+    @Column(nullable = true, precision = 12, scale = 2)
+    private BigDecimal discountPrice;
+
     @Column(nullable = true, length = 500, columnDefinition = "NVARCHAR(500)")
     private String imageUrl;
 
@@ -37,6 +42,38 @@ public class Product {
 
     @Column(length = 40, columnDefinition = "NVARCHAR(40)")
     private String unitLabel = "unit";
+
+    // ── Discount helpers ──────────────────────────────────────────────────────
+
+    /**
+     * Returns true when a valid discount price exists (non-null, positive, and strictly less than the regular price).
+     */
+    public boolean hasDiscount() {
+        return discountPrice != null
+                && discountPrice.compareTo(BigDecimal.ZERO) > 0
+                && discountPrice.compareTo(price) < 0;
+    }
+
+    /**
+     * Returns the effective selling price: discountPrice if a valid discount exists, otherwise the regular price.
+     */
+    public BigDecimal getEffectivePrice() {
+        return hasDiscount() ? discountPrice : price;
+    }
+
+    /**
+     * Returns the discount percentage saved (0-100) as an integer, or 0 if no discount applies.
+     * Formula: round((price - discountPrice) / price * 100)
+     */
+    public int getDiscountPercent() {
+        if (!hasDiscount()) return 0;
+        return price.subtract(discountPrice)
+                .multiply(BigDecimal.valueOf(100))
+                .divide(price, 0, RoundingMode.HALF_UP)
+                .intValue();
+    }
+
+    // ── Getters & Setters ─────────────────────────────────────────────────────
 
     public Long getId() {
         return id;
@@ -60,6 +97,14 @@ public class Product {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public BigDecimal getDiscountPrice() {
+        return discountPrice;
+    }
+
+    public void setDiscountPrice(BigDecimal discountPrice) {
+        this.discountPrice = discountPrice;
     }
 
     public String getImageUrl() {

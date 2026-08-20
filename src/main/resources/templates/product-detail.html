@@ -30,9 +30,19 @@
                 <span class="badge text-bg-secondary mb-3" th:unless="${product.available}">Out of stock</span>
                 <h1 class="display-6 fw-bold" th:text="${product.name}">Product Name</h1>
                 <p class="text-secondary fs-5 mb-2" th:text="${product.unitLabel}">Unit</p>
-                <p class="detail-price mb-4">
-                                    <span class="price" th:text="${@currency.format(product.price, #locale)}">0</span>
-                </p>
+                <div class="detail-price mb-4">
+                    <!-- Discounted price display -->
+                    <div th:if="${product.hasDiscount()}" class="d-flex flex-wrap align-items-center gap-3">
+                        <span class="price-original-lg" th:text="${@currency.format(product.price, #locale)}">0</span>
+                        <span class="price-discounted-lg fw-bold"
+                              th:text="${@currency.format(product.discountPrice, #locale)}">0</span>
+                        <span class="badge discount-badge-lg"
+                              th:text="'SAVE ' + ${product.discountPercent} + '%'">SAVE X%</span>
+                    </div>
+                    <!-- Regular price display (no discount) -->
+                    <span class="price" th:unless="${product.hasDiscount()}"
+                          th:text="${@currency.format(product.price, #locale)}">0</span>
+                </div>
 
                 <div class="simple-info-grid mb-4">
                     <div>

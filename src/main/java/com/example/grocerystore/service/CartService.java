@@ -40,7 +40,7 @@ public class CartService {
         item.setName(product.getName());
         item.setImageUrl(product.getImageUrl());
         item.setUnitLabel(product.getUnitLabel());
-        item.setUnitPrice(product.getPrice());
+        item.setUnitPrice(product.getEffectivePrice()); // uses discountPrice when valid
         item.setQuantity(quantity);
         getCart(session).addItem(item);
     }

@@ -45,9 +45,21 @@
                         <h3 class="h5 card-title fw-bold" th:text="${product.name}">Product</h3>
                     </a>
                     <p class="text-secondary small mb-2" th:text="${product.unitLabel}">Unit</p>
-                    <p class="h5 text-success fw-bold mb-3">
-                                            <span class="price" th:text="${@currency.format(product.price, #locale)}">0</span>
-                    </p>
+                    <!-- Price block: shows discount if available, otherwise original price -->
+                    <div class="mb-3">
+                        <!-- Discounted price display -->
+                        <div th:if="${product.hasDiscount()}" class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="price-original" th:text="${@currency.format(product.price, #locale)}">0</span>
+                            <span class="h5 price-discounted fw-bold mb-0"
+                                  th:text="${@currency.format(product.discountPrice, #locale)}">0</span>
+                            <span class="badge discount-badge"
+                                  th:text="'SAVE ' + ${product.discountPercent} + '%'">SAVE X%</span>
+                        </div>
+                        <!-- Regular price display (no discount) -->
+                        <p class="h5 text-success fw-bold mb-0" th:unless="${product.hasDiscount()}">
+                            <span class="price" th:text="${@currency.format(product.price, #locale)}">0</span>
+                        </p>
+                    </div>
                     <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="mt-auto product-actions" data-product-id="${product.id}">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                         <div class="input-group">

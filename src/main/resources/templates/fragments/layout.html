@@ -180,6 +180,21 @@
         </div>
     </div>
 
+    <!-- Floating Viber Support Button -->
+    <div id="floatingViber" sec:authorize="!hasRole('ADMIN')"
+         style="position:fixed;right:18px;bottom:88px;z-index:1051;">
+        <a th:href="'viber://chat?number=' + ${viberPhone}"
+           th:attr="data-viber-web='https://viber.click/' + ${#strings.replace(viberPhone, '+', '')}"
+           id="floatingViberBtn"
+           class="fab-viber"
+           aria-label="Chat on Viber"
+           rel="noopener noreferrer">
+            <!-- Viber-style phone/chat icon -->
+            <i class="bi bi-telephone-fill" style="font-size:22px;color:#fff;"></i>
+        </a>
+        <span class="fab-viber-tooltip">Chat on Viber</span>
+    </div>
+
     <!-- Floating cart button -->
     <div id="floatingCart" sec:authorize="!hasRole('ADMIN')" style="position:fixed;right:18px;bottom:18px;z-index:1050;">
         <a th:href="@{/cart}" id="floatingCartBtn"
