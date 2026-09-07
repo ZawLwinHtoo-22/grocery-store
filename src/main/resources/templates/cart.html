@@ -27,55 +27,64 @@
         <div class="row g-4">
             <div class="col-lg-7">
                 <div class="list-group" th:if="${!cart.empty}">
-                    <div class="list-group-item cart-row" th:each="item : ${cart.items}">
-                        <img th:src="@{${item.imageUrl}}" th:alt="${item.name}" class="cart-thumb">
+                    <div class="list-group-item cart-row p-3 mb-2 rounded-3 border shadow-sm bg-white" th:each="item : ${cart.items}">
+                        <img th:src="@{${item.imageUrl}}" th:alt="${item.name}" class="cart-thumb rounded-3">
                         <div class="flex-grow-1">
-                            <h2 class="h6 fw-bold mb-1" th:text="${item.name}">Product</h2>
+                            <h2 class="h6 fw-bold mb-1 text-dark" th:text="${item.name}">Product</h2>
                             <p class="small text-secondary mb-2">
-                                <span class="price" th:text="${@currency.format(item.unitPrice, #locale)}">0</span> /
+                                <span class="fw-bold text-success" th:text="${@currency.format(item.unitPrice, #locale)}">0</span> /
                                 <span th:text="${item.unitLabel}">unit</span>
                             </p>
-                            <form th:action="@{/cart/update}" method="post" class="d-flex gap-2">
+                            <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center gap-2 mt-1">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="productId" th:value="${item.productId}">
-                                <input class="form-control form-control-sm qty-input" name="quantity" type="number"
-                                    min="0" th:value="${item.quantity}">
-                                <button class="btn btn-sm btn-outline-secondary" type="submit">Update</button>
+                                <div class="input-group" style="max-width: 150px;">
+                                    <input class="form-control text-center fw-bold fs-6" name="quantity" type="number"
+                                           min="1" th:value="${item.quantity}" style="height: 44px;">
+                                    <button class="btn btn-outline-success fw-bold px-3" type="submit" style="height: 44px;" title="Update">
+                                        <i class="bi bi-check-lg fs-5"></i>
+                                    </button>
+                                </div>
                             </form>
                         </div>
-                        <div class="text-end">
-                            <div class="fw-bold">
-                                <span class="price" th:text="${@currency.format(item.lineTotal, #locale)}">0</span>
+                        <div class="text-end d-flex flex-column align-items-end justify-content-between">
+                            <div class="fw-bold fs-5 text-success">
+                                <span th:text="${@currency.format(item.lineTotal, #locale)}">0</span>
                             </div>
                             <form th:action="@{/cart/remove}" method="post" class="mt-2">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="productId" th:value="${item.productId}">
-                                <button class="btn btn-sm btn-link text-danger p-0" type="submit">Remove</button>
+                                <button class="btn btn-outline-danger btn-sm px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1 rounded-pill"
+                                        type="submit" style="min-height: 42px;">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Remove</span>
+                                </button>
                             </form>
                         </div>
                     </div>
                 </div>
-                <div class="empty-state text-center py-5" th:if="${cart.empty}">
-                    <h2 class="h5" th:text="#{cart.emptyTitle}">Your cart is empty.</h2>
-                    <p class="text-secondary" th:text="#{cart.emptySubtitle}">Add rice or oil products before checkout.
-                    </p>
-                    <a th:href="@{/}" class="btn btn-success" th:text="#{cart.browseProducts}">Browse Products</a>
+                <div class="empty-state text-center py-5 shadow-sm rounded-4 border bg-white" th:if="${cart.empty}">
+                    <i class="bi bi-cart-x display-3 text-secondary d-block mb-3 opacity-50"></i>
+                    <h2 class="h4 fw-bold text-dark" th:text="#{cart.emptyTitle}">Your cart is empty.</h2>
+                    <p class="text-secondary fs-6 mb-4" th:text="#{cart.emptySubtitle}">Add rice or oil products before checkout.</p>
+                    <a th:href="@{/}" class="btn btn-success btn-lg px-4 py-3 fw-bold rounded-pill" style="min-height: 48px;" th:text="#{cart.browseProducts}">Browse Products</a>
                 </div>
             </div>
 
             <div class="col-lg-5">
-                <div class="summary-panel">
-                    <h2 class="h5 fw-bold" th:text="#{checkout.title}">Checkout</h2>
-                    <div class="d-flex justify-content-between border-bottom py-3 mb-3">
-                        <span>Total</span>
-                        <strong><span class="price" th:text="${@currency.format(cart.total, #locale)}">0</span></strong>
+                <div class="summary-panel shadow-sm border rounded-4 p-4 bg-white">
+                    <h2 class="h4 fw-bold text-dark mb-3" th:text="#{checkout.title}">Checkout</h2>
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                        <span class="fs-5 fw-bold text-dark">Total</span>
+                        <strong class="fs-3 fw-bold text-success" th:text="${@currency.format(cart.total, #locale)}">0</strong>
                     </div>
                     <form th:action="@{/checkout}" th:object="${checkoutForm}" method="post" novalidate>
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
                         <div class="mb-3">
-                            <label class="form-label" for="preferredDeliverySlot"
+                            <label class="form-label fw-bold text-dark fs-6" for="preferredDeliverySlot"
                                 th:text="#{checkout.preferredDeliverySlot}">Preferred Delivery Time / Slot</label>
-                            <select id="preferredDeliverySlot" class="form-select" th:field="*{preferredDeliverySlot}">
+                            <select id="preferredDeliverySlot" class="form-select form-select-lg fs-6" th:field="*{preferredDeliverySlot}" style="min-height: 48px;">
                                 <option value="" th:text="#{checkout.noPreference}">No preference</option>
                                 <option value="Morning (8:00 AM - 12:00 PM)" th:text="#{checkout.slot.morning}">Morning
                                     (8:00 AM - 12:00 PM)</option>
@@ -88,34 +97,48 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" for="customerName" th:text="#{checkout.customerName}">Name</label>
-                            <input id="customerName" class="form-control" th:field="*{customerName}" required>
-                            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('customerName')}"
+                            <label class="form-label fw-bold text-dark fs-6" for="customerName">
+                                <span th:text="#{checkout.customerName}">Name</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input id="customerName" class="form-control form-control-lg fs-6" th:field="*{customerName}" required placeholder="e.g. ဦးအောင်မင်း / Daw Aye" style="min-height: 48px;">
+                            <div class="invalid-feedback d-block fw-bold" th:if="${#fields.hasErrors('customerName')}"
                                 th:errors="*{customerName}"></div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label" for="phoneNumber" th:text="#{checkout.phoneNumber}">Phone
-                                Number</label>
-                            <input id="phoneNumber" class="form-control" th:field="*{phoneNumber}" required>
-                            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('phoneNumber')}"
+                            <label class="form-label fw-bold text-dark fs-6" for="phoneNumber">
+                                <span th:text="#{checkout.phoneNumber}">Phone Number</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input id="phoneNumber" class="form-control form-control-lg fs-6 font-monospace" type="tel" th:field="*{phoneNumber}" required placeholder="09xxxxxxxxx" autocomplete="tel" inputmode="tel" style="min-height: 48px;">
+                            <div class="invalid-feedback d-block fw-bold" th:if="${#fields.hasErrors('phoneNumber')}"
                                 th:errors="*{phoneNumber}"></div>
                         </div>
+
                         <div class="mb-3">
-                            <label class="form-label" for="deliveryAddress"
-                                th:text="#{checkout.deliveryAddress}">Delivery Address</label>
-                            <textarea id="deliveryAddress" class="form-control" rows="4" th:field="*{deliveryAddress}"
-                                required></textarea>
-                            <div class="invalid-feedback d-block" th:if="${#fields.hasErrors('deliveryAddress')}"
+                            <label class="form-label fw-bold text-dark fs-6" for="deliveryAddress">
+                                <span th:text="#{checkout.deliveryAddress}">Delivery Address</span>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <textarea id="deliveryAddress" class="form-control fs-6" rows="3" th:field="*{deliveryAddress}"
+                                required placeholder="အိမ်အမှတ်၊ လမ်း၊ ရပ်ကွက်၊ မြို့နယ် (Shwe Pyi Thar)"></textarea>
+                            <div class="invalid-feedback d-block fw-bold" th:if="${#fields.hasErrors('deliveryAddress')}"
                                 th:errors="*{deliveryAddress}"></div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="deliveryNote"
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark fs-6" for="deliveryNote"
                                 th:text="#{checkout.deliveryNote}">Remark</label>
-                            <textarea id="deliveryNote" class="form-control" th:field="*{deliveryNote}"
-                                th:placeholder="#{checkout.deliveryNote.placeholder}" rows="4"></textarea>
+                            <textarea id="deliveryNote" class="form-control fs-6" th:field="*{deliveryNote}"
+                                th:placeholder="#{checkout.deliveryNote.placeholder}" rows="2"></textarea>
                         </div>
-                        <button class="btn btn-success btn-lg w-100" type="submit" th:disabled="${cart.empty}">
-                            <i class="bi bi-send-check" aria-hidden="true"></i>
+
+                        <button class="btn btn-success btn-lg w-100 py-3 fw-bold fs-5 d-flex align-items-center justify-content-center gap-2 shadow-sm rounded-3"
+                                type="submit"
+                                th:disabled="${cart.empty}"
+                                style="min-height: 54px;">
+                            <i class="bi bi-send-check-fill fs-4" aria-hidden="true"></i>
                             <span th:text="#{checkout.submitOrder}">Submit Order</span>
                         </button>
                     </form>

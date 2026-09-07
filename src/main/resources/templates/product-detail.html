@@ -30,18 +30,24 @@
                 <span class="badge text-bg-secondary mb-3" th:unless="${product.available}">Out of stock</span>
                 <h1 class="display-6 fw-bold" th:text="${product.name}">Product Name</h1>
                 <p class="text-secondary fs-5 mb-2" th:text="${product.unitLabel}">Unit</p>
-                <div class="detail-price mb-4">
+                <div class="detail-price-box mb-4">
                     <!-- Discounted price display -->
-                    <div th:if="${product.hasDiscount()}" class="d-flex flex-wrap align-items-center gap-3">
-                        <span class="price-original-lg" th:text="${@currency.format(product.price, #locale)}">0</span>
-                        <span class="price-discounted-lg fw-bold"
-                              th:text="${@currency.format(product.discountPrice, #locale)}">0</span>
-                        <span class="badge discount-badge-lg"
-                              th:text="'SAVE ' + ${product.discountPercent} + '%'">SAVE X%</span>
+                    <div th:if="${product.hasDiscount()}" class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <del class="text-muted fs-5 price-original-lg" th:text="${@currency.format(product.price, #locale)}">65,000 MMK</del>
+                            <span class="badge bg-danger rounded-pill fs-6 px-3 py-2 savings-badge-lg"
+                                  th:text="#{product.save} + ' ' + ${@currency.format(product.savingsAmount, #locale)} + ' (-' + ${product.discountPercent} + '%)'">Save 5,000 MMK</span>
+                        </div>
+                        <div>
+                            <span class="fw-bold text-success display-5 price-discounted-lg"
+                                  th:text="${@currency.format(product.discountPrice, #locale)}">60,000 MMK</span>
+                        </div>
                     </div>
                     <!-- Regular price display (no discount) -->
-                    <span class="price" th:unless="${product.hasDiscount()}"
-                          th:text="${@currency.format(product.price, #locale)}">0</span>
+                    <div th:unless="${product.hasDiscount()}">
+                        <span class="fw-bold text-success display-5 price"
+                              th:text="${@currency.format(product.price, #locale)}">65,000 MMK</span>
+                    </div>
                 </div>
 
                 <div class="simple-info-grid mb-4">
@@ -61,12 +67,12 @@
 
                 <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" class="detail-cart-form" data-product-id="${product.id}">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <label class="form-label fw-semibold" for="quantity">Quantity</label>
-                    <div class="input-group input-group-lg">
-                        <input id="quantity" class="form-control" type="number" name="quantity" min="1" value="1">
-                        <button class="btn btn-success" type="submit" th:disabled="${!product.available}">
-                            <i class="bi bi-cart-plus" aria-hidden="true"></i>
-                            <span th:text="#{cart.addToCart}">Add to Cart</span>
+                    <label class="form-label fw-bold fs-6 mb-2" for="quantity" th:text="#{cart.quantity}">Quantity</label>
+                    <div class="input-group input-group-lg mb-3">
+                        <input id="quantity" class="form-control text-center fw-bold fs-5" type="number" name="quantity" min="1" value="1" style="max-width: 90px;">
+                        <button class="btn btn-success fw-bold flex-grow-1 d-flex align-items-center justify-content-center gap-2" type="submit" th:disabled="${!product.available}">
+                            <i class="bi bi-cart-plus fs-4" aria-hidden="true"></i>
+                            <span class="fs-5" th:text="#{cart.addToCart}">Add to Cart</span>
                         </button>
                     </div>
                 </form>

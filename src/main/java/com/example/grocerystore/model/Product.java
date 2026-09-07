@@ -73,6 +73,14 @@ public class Product {
                 .intValue();
     }
 
+    /**
+     * Returns the absolute savings amount (price - discountPrice) if a discount applies, or 0.
+     */
+    public BigDecimal getSavingsAmount() {
+        if (!hasDiscount()) return BigDecimal.ZERO;
+        return price.subtract(discountPrice);
+    }
+
     // ── Getters & Setters ─────────────────────────────────────────────────────
 
     public Long getId() {

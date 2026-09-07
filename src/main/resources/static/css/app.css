@@ -727,3 +727,87 @@ html[lang="my"] .price {
     /* Footer bottom wrap */
     .footer-bottom { flex-direction: column; gap: .25rem; }
 }
+
+/* ── Floating Action Buttons (FABs) & Viber ──────────────────── */
+.fab-viber {
+    width: 54px;
+    height: 54px;
+    background-color: #7360F2 !important;
+    color: #ffffff !important;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: 3px solid #ffffff;
+    box-shadow: 0 6px 18px rgba(115, 96, 242, 0.45), 0 2px 6px rgba(0, 0, 0, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    font-size: 22px;
+}
+
+.fab-viber:hover, .fab-viber:focus {
+    transform: scale(1.08);
+    color: #ffffff !important;
+    box-shadow: 0 8px 24px rgba(115, 96, 242, 0.6), 0 3px 8px rgba(0, 0, 0, 0.25);
+}
+
+.fab-viber-tooltip {
+    position: absolute;
+    right: 64px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #ffffff;
+    color: #1e293b;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+#floatingViber:hover .fab-viber-tooltip {
+    opacity: 1;
+}
+
+.btn-viber {
+    background-color: #7360F2;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-viber:hover, .btn-viber:focus {
+    background-color: #5f4bd8;
+    color: #ffffff;
+}
+
+/* ── Mobile-First Touch Targets & Accessibility ─────────────── */
+@media (max-width: 767.98px) {
+    /* Ensure minimum 48px - 52px touch targets on mobile for critical actions */
+    .btn-lg,
+    .form-control-lg,
+    .input-group-lg > .form-control,
+    .input-group-lg > .btn {
+        min-height: 50px;
+    }
+
+    /* Prevent accidental zoom on iOS while maintaining comfortable senior readability */
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+
+    /* Floating action buttons offset for thumb zone */
+    #floatingViber {
+        bottom: 84px !important;
+        right: 16px !important;
+    }
+
+    #floatingCart {
+        bottom: 16px !important;
+        right: 16px !important;
+    }
+}
+

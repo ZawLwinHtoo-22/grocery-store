@@ -21,10 +21,16 @@
                     <a class="nav-link fw-medium" th:href="@{/}" th:text="#{nav.products}">Products</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" th:href="@{/orders/history}" th:text="#{nav.orderHistory}">Order History</a>
+                    <a class="nav-link fw-medium" th:href="@{/track}">
+                        <i class="bi bi-search me-1 text-success d-lg-none"></i>
+                        <span th:text="#{nav.track}">Track Order</span>
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link fw-medium" th:href="@{/track}" th:text="#{nav.track}">Track Order</a>
+                    <a class="nav-link fw-medium" href="#contactModal" data-bs-toggle="modal" role="button">
+                        <i class="bi bi-telephone-fill me-1 text-success"></i>
+                        <span th:text="#{nav.contact}">Contact Us</span>
+                    </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/user-guide}">
@@ -149,61 +155,136 @@
 <footer th:fragment="footer" class="site-footer mt-5">
     <div class="container py-4">
         <div class="row g-4">
-            <div class="col-md-5">
-                <h2 class="h5 fw-bold" th:text="#{footer.about}">Rice &amp; Oil Store</h2>
-                <!-- <p class="mb-2" th:text="#{footer.aboutText}">Fresh rice and cooking oil with admin-confirmed stock before payment.</p> -->
-                <p class="footer-contact mb-0">Phone: 09 96 2800 540</p>
-                <p class="footer-contact mb-0">Delivery: Shwe Pyi Thar</p>
+            <!-- Col 1: Store info & Contact section -->
+            <div class="col-12 col-md-5">
+                <h2 class="h5 fw-bold text-white" th:text="#{footer.about}">Rice &amp; Oil Store</h2>
+                <div class="footer-contact-box mt-3 d-grid gap-2">
+                    <a href="tel:09962800540" class="d-flex align-items-center gap-2 text-decoration-none text-white fw-bold fs-6">
+                        <i class="bi bi-telephone-fill text-success fs-5"></i>
+                        <span>09 96 2800 540</span>
+                    </a>
+                    <a th:href="'viber://chat?number=' + ${viberPhone}"
+                       th:attr="data-viber-web='https://viber.click/' + ${#strings.replace(viberPhone, '+', '')}"
+                       class="d-flex align-items-center gap-2 text-decoration-none fw-bold fs-6"
+                       style="color: #7360F2;">
+                        <i class="bi bi-chat-dots-fill fs-5"></i>
+                        <span th:text="#{contact.viberChat}">Chat on Viber</span>
+                    </a>
+                    <div class="d-flex align-items-start gap-2 text-white fs-6">
+                        <i class="bi bi-geo-alt-fill text-danger fs-5 mt-1"></i>
+                        <span th:text="#{contact.location}">Delivery: Shwe Pyi Thar Township, Yangon</span>
+                    </div>
+                </div>
+                <button class="btn btn-outline-success btn-sm mt-3 px-3 py-2 rounded-pill fw-bold"
+                        data-bs-toggle="modal" data-bs-target="#contactModal">
+                    <i class="bi bi-headset me-1"></i>
+                    <span th:text="#{nav.contact}">Contact Us</span>
+                </button>
             </div>
+            <!-- Col 2: Quick Links -->
             <div class="col-6 col-md-3">
-                <h3 class="h6 fw-bold" th:text="#{footer.quick}">Quick Links</h3>
-                <ul class="list-unstyled footer-links">
+                <h3 class="h6 fw-bold text-white text-decoration-underline" th:text="#{footer.quick}">Quick Links</h3>
+                <ul class="list-unstyled footer-links d-grid gap-2 mt-2">
                     <li><a th:href="@{/}" th:text="#{nav.products}">Products</a></li>
                     <li><a th:href="@{/track}" th:text="#{nav.track}">Track Order</a></li>
                     <li><a th:href="@{/cart}" th:text="#{nav.cart}">Cart</a></li>
+                    <li><a th:href="@{/user-guide}" th:text="#{nav.userGuide}">User Guide</a></li>
                     <li><a th:href="@{/login}" th:text="#{nav.staff}">Staff Portal</a></li>
                 </ul>
             </div>
+            <!-- Col 3: Order Process -->
             <div class="col-6 col-md-4">
-                <h3 class="h6 fw-bold" th:text="#{footer.process}">Order Process</h3>
-                <ol class="footer-steps mb-0">
+                <h3 class="h6 fw-bold text-white text-decoration-underline" th:text="#{footer.process}">Order Process</h3>
+                <ol class="footer-steps mb-0 d-grid gap-2 mt-2">
                     <li th:text="#{footer.submit}">Submit order</li>
-                    <!-- <li th:text="#{footer.wait}">Wait for stock approval</li> -->
                     <li th:text="#{footer.upload}">Pay and upload screenshot</li>
                     <li th:text="#{footer.deliver}">Delivery after confirmation</li>
                 </ol>
             </div>
         </div>
-        <div class="footer-bottom mt-4 pt-3">
+        <div class="footer-bottom mt-4 pt-3 border-top d-flex justify-content-between flex-wrap gap-2 text-secondary small">
             <span>Current prices are shown before checkout.</span>
-            <span>© 2026 Rice &amp; Oil Store</span>
+            <span>© 2026 Rice &amp; Oil Store (မြတ်မွန် ဆန်ဆိုင်)</span>
         </div>
     </div>
 
-    <!-- Floating Viber Support Button -->
-    <div id="floatingViber" sec:authorize="!hasRole('ADMIN')"
-         style="position:fixed;right:18px;bottom:88px;z-index:1051;">
+    <!-- Contact Us Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow-lg">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h1 class="modal-title fs-5 fw-bold text-dark" id="contactModalLabel" th:text="#{nav.contact}">Contact Us</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-secondary fs-6 mb-4" th:text="#{contact.subtitle}">
+                        Have questions or need help with your order? Reach out anytime!
+                    </p>
+
+                    <!-- Phone Action Button -->
+                    <a href="tel:09962800540"
+                       class="btn btn-success btn-lg w-100 py-3 fw-bold d-flex align-items-center justify-content-center gap-3 mb-3 shadow-sm rounded-3"
+                       style="min-height: 52px;">
+                        <i class="bi bi-telephone-fill fs-4"></i>
+                        <div class="text-start">
+                            <div class="small fw-normal" th:text="#{contact.callStore}">Call Store Hotline</div>
+                            <div class="fs-5">09 96 2800 540</div>
+                        </div>
+                    </a>
+
+                    <!-- Viber Action Button -->
+                    <a th:href="'viber://chat?number=' + ${viberPhone}"
+                       th:attr="data-viber-web='https://viber.click/' + ${#strings.replace(viberPhone, '+', '')}"
+                       id="modalViberBtn"
+                       class="btn btn-lg w-100 py-3 fw-bold d-flex align-items-center justify-content-center gap-3 mb-4 shadow-sm rounded-3 text-white"
+                       style="background-color: #7360F2; min-height: 52px;"
+                       target="_blank" rel="noopener noreferrer">
+                        <i class="bi bi-chat-dots-fill fs-4"></i>
+                        <div class="text-start">
+                            <div class="small fw-normal" th:text="#{contact.chatViber}">Viber Quick Chat</div>
+                            <div class="fs-5">Viber: 09 96 2800 540</div>
+                        </div>
+                    </a>
+
+                    <!-- Store Info Details -->
+                    <div class="bg-light rounded-3 p-3 d-grid gap-2 text-dark">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-geo-alt-fill text-danger fs-5"></i>
+                            <span class="fw-semibold" th:text="#{contact.location}">Shwe Pyi Thar Township, Yangon</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-clock-fill text-success fs-5"></i>
+                            <span class="fw-semibold" th:text="#{contact.hours}">Daily 8:00 AM - 6:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Viber Support Button (Polished, high-contrast FAB) -->
+    <!-- <div id="floatingViber" sec:authorize="!hasRole('ADMIN')"
+         style="position:fixed;right:18px;bottom:88px;z-index:1040;">
         <a th:href="'viber://chat?number=' + ${viberPhone}"
            th:attr="data-viber-web='https://viber.click/' + ${#strings.replace(viberPhone, '+', '')}"
            id="floatingViberBtn"
-           class="fab-viber"
-           aria-label="Chat on Viber"
+           class="fab-viber shadow-lg"
+           aria-label="Chat with us on Viber"
            rel="noopener noreferrer">
-            <!-- Viber-style phone/chat icon -->
-            <i class="bi bi-telephone-fill" style="font-size:22px;color:#fff;"></i>
+            <i class="bi bi-chat-dots-fill" aria-hidden="true"></i>
         </a>
-        <span class="fab-viber-tooltip">Chat on Viber</span>
-    </div>
+        <span class="fab-viber-tooltip shadow-sm">Viber Chat</span>
+    </div> -->
 
     <!-- Floating cart button -->
-    <div id="floatingCart" sec:authorize="!hasRole('ADMIN')" style="position:fixed;right:18px;bottom:18px;z-index:1050;">
+    <div id="floatingCart" sec:authorize="!hasRole('ADMIN')" style="position:fixed;right:18px;bottom:18px;z-index:1040;">
         <a th:href="@{/cart}" id="floatingCartBtn"
            class="btn btn-success rounded-circle shadow-lg"
            style="width:60px;height:60px;display:flex;align-items:center;justify-content:center;position:relative;text-decoration:none;"
            aria-label="View Cart">
-            <i class="bi bi-cart3" style="font-size:20px;color:#fff"></i>
+            <i class="bi bi-cart3" style="font-size:22px;color:#fff"></i>
             <span id="floatingCartBadge" class="badge text-bg-danger"
-                  style="position:absolute;top:2px;right:2px;display:none;font-size:.65rem;min-width:18px;height:18px;line-height:18px;padding:0 4px;border-radius:50px;">0</span>
+                  style="position:absolute;top:2px;right:2px;display:none;font-size:.7rem;min-width:20px;height:20px;line-height:20px;padding:0 4px;border-radius:50px;">0</span>
         </a>
     </div>
 

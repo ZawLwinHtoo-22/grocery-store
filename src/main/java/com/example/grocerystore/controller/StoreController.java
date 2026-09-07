@@ -96,14 +96,19 @@ public class StoreController {
 
     @GetMapping("/track")
     public String trackSearch(@RequestParam(required = false) Long orderId,
-                              @RequestParam(required = false) String trackingCode) {
+                              @RequestParam(required = false) String trackingCode,
+                              @RequestParam(required = false, defaultValue = "phone") String tab,
+                              Model model) {
         if (trackingCode != null && !trackingCode.isBlank()) {
             return "redirect:/orders/track/" + trackingCode.trim();
         }
-        if (orderId == null) {
-            return "track-search";
+        if (orderId != null) {
+            return "redirect:/orders/" + orderId;
         }
-        return "redirect:/orders/" + orderId;
+        if (!model.containsAttribute("activeTab")) {
+            model.addAttribute("activeTab", (tab != null && tab.equals("code")) ? "code" : "phone");
+        }
+        return "track-search";
     }
 
     @PostMapping("/cart/update")
@@ -203,46 +208,71 @@ public class StoreController {
     }
 
     @PostMapping("/track/search")
-    public String trackSearchPost(@RequestParam(required = false) String trackingCode,
+    public String trackSearchPost(@RequestParam(required = false, defaultValue = "phone") String searchType,
+                                  @RequestParam(required = false) String trackingCode,
                                   @RequestParam(required = false) String phoneNumber,
                                   @RequestParam(required = false) String startDate,
                                   @RequestParam(required = false) String endDate,
                                   Model model,
                                   RedirectAttributes redirectAttributes) {
-        boolean hasTrackingOrPhone = (trackingCode != null && !trackingCode.isBlank()) || (phoneNumber != null && !phoneNumber.isBlank());
-        boolean hasDateRange = (startDate != null && !startDate.isBlank()) || (endDate != null && !endDate.isBlank());
-
-        if (!hasTrackingOrPhone && !hasDateRange) {
-            redirectAttributes.addFlashAttribute("error", "Please provide a tracking code, phone number, or a date range.");
-            return "redirect:/track";
-        }
-
-        // tracking code takes precedence
-        if (trackingCode != null && !trackingCode.isBlank()) {
-            try {
-                CustomerOrder order = orderService.findWithItemsByTrackingCode(trackingCode.trim());
-                return "redirect:/orders/detail/" + order.getTrackingCode();
-            } catch (IllegalArgumentException ex) {
-                redirectAttributes.addFlashAttribute("error", "Order မတွေ့ပါ။ Tracking code ကို ပြန်စစ်ပေးပါ။");
-                return "redirect:/track";
+        // Tab 1: Search by Phone Number
+        if ("phone".equalsIgnoreCase(searchType) || (phoneNumber != null && !phoneNumber.isBlank() && (trackingCode == null || trackingCode.isBlank()) && (startDate == null || startDate.isBlank()))) {
+            if (phoneNumber == null || phoneNumber.trim().isBlank()) {
+                redirectAttributes.addFlashAttribute("error", "ဖုန်းနံပါတ် ထည့်သွင်းပေးပါ။ (Please enter your phone number)");
+                return "redirect:/track?tab=phone";
             }
-        }
-
-        // date range search
-        if (hasDateRange) {
-            java.time.LocalDate from = (startDate != null && !startDate.isBlank()) ? java.time.LocalDate.parse(startDate) : null;
-            java.time.LocalDate to = (endDate != null && !endDate.isBlank()) ? java.time.LocalDate.parse(endDate) : null;
-            java.util.List<CustomerOrder> orders = orderService.searchOrders(null, null, from, to);
+            String cleanPhone = phoneNumber.trim();
+            java.util.List<CustomerOrder> orders = orderService.findByPhoneNumber(cleanPhone);
             model.addAttribute("orders", orders);
-            model.addAttribute("startDate", startDate);
-            model.addAttribute("endDate", endDate);
+            model.addAttribute("phone", cleanPhone);
+            model.addAttribute("activeTab", "phone");
+            model.addAttribute("hasSearched", true);
             return "track-search";
         }
 
-        // search by phone number
-        java.util.List<CustomerOrder> orders = orderService.findByPhoneNumber(phoneNumber.trim());
+        // Tab 2: Search by Tracking Code & Date Range
+        String cleanCode = (trackingCode != null && !trackingCode.isBlank()) ? trackingCode.trim() : null;
+        boolean hasDateRange = (startDate != null && !startDate.isBlank()) || (endDate != null && !endDate.isBlank());
+
+        if (cleanCode == null && !hasDateRange) {
+            redirectAttributes.addFlashAttribute("error", "Tracking Code သို့မဟုတ် ရက်စွဲ ထည့်သွင်းပေးပါ။ (Please enter tracking code or date range)");
+            return "redirect:/track?tab=code";
+        }
+
+        java.time.LocalDate from = null;
+        java.time.LocalDate to = null;
+        try {
+            if (startDate != null && !startDate.isBlank()) {
+                from = java.time.LocalDate.parse(startDate.trim());
+            }
+            if (endDate != null && !endDate.isBlank()) {
+                to = java.time.LocalDate.parse(endDate.trim());
+            }
+        } catch (java.time.format.DateTimeParseException ex) {
+            redirectAttributes.addFlashAttribute("error", "ရက်စွဲ ပုံစံ မမှန်ပါ။ (Invalid date format)");
+            return "redirect:/track?tab=code";
+        }
+
+        java.util.List<CustomerOrder> orders;
+        if (cleanCode != null && !hasDateRange) {
+            // Direct tracking code lookup
+            try {
+                CustomerOrder singleOrder = orderService.findWithItemsByTrackingCode(cleanCode);
+                orders = java.util.List.of(singleOrder);
+            } catch (IllegalArgumentException ex) {
+                // If not exact match, search containing
+                orders = orderService.searchOrders(cleanCode, null, null, null);
+            }
+        } else {
+            orders = orderService.searchOrders(cleanCode, null, from, to);
+        }
+
         model.addAttribute("orders", orders);
-        model.addAttribute("phone", phoneNumber.trim());
+        model.addAttribute("trackingCode", cleanCode);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("activeTab", "code");
+        model.addAttribute("hasSearched", true);
         return "track-search";
     }
 }

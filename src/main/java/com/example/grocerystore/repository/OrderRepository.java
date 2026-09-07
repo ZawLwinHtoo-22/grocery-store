@@ -32,9 +32,11 @@ public interface OrderRepository extends JpaRepository<CustomerOrder, Long> {
     long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
     // Find orders by phone number for customer history lookup
+    @EntityGraph(attributePaths = {"items", "items.product"})
     List<CustomerOrder> findByPhoneNumberOrderByCreatedAtDesc(String phoneNumber);
 
     // Find orders between dates (inclusive start, exclusive end)
+    @EntityGraph(attributePaths = {"items", "items.product"})
     List<CustomerOrder> findByCreatedAtBetweenOrderByCreatedAtDesc(LocalDateTime start, LocalDateTime end);
 
     // Sum totalAmount in range
