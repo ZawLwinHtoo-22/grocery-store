@@ -28,13 +28,16 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final CloudinaryService cloudinaryService;
+    private final TelegramNotificationService telegramNotificationService;
 
     public OrderService(OrderRepository orderRepository,
                         ProductRepository productRepository,
-                        CloudinaryService cloudinaryService) {
+                        CloudinaryService cloudinaryService,
+                        TelegramNotificationService telegramNotificationService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.cloudinaryService = cloudinaryService;
+        this.telegramNotificationService = telegramNotificationService;
     }
 
     @Transactional
@@ -82,7 +85,12 @@ public class OrderService {
         String trackingCode = String.format("OD-%05d", saved.getId());
         saved.setTrackingCode(trackingCode);
         saved.setUpdatedAt(LocalDateTime.now());
-        return orderRepository.save(saved);
+        CustomerOrder finalOrder = orderRepository.save(saved);
+
+        // Fire async Telegram notification — runs in background, never blocks checkout
+        telegramNotificationService.sendNewOrderNotification(finalOrder);
+
+        return finalOrder;
     }
 
     @Transactional(readOnly = true)
