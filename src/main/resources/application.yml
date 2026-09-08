@@ -8,9 +8,9 @@ spring:
     cache-duration: 0
   datasource:
     # Ensure the SQL Server driver sends string parameters as Unicode
-    url: jdbc:sqlserver://localhost:1433;databaseName=grocery_store;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
-    username: sa
-    password: root
+    url: jdbc:sqlserver://SQL50XX.site4now.net:1433;databaseName=grocerystore;encrypt=true;trustServerCertificate=true;sendStringParametersAsUnicode=true
+    username: db_ace0d7_grocerystore_admin
+    password: Smarter2026#
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
   # Force HTTP/JSON encoding to UTF-8 to preserve Myanmar characters in responses
   http:
@@ -33,12 +33,11 @@ spring:
 
 server:
   port: 8080
-  address: 0.0.0.0
 
 app:
   admin:
     username: admin
-    password: admin123
+    password: htoo123!@#
   uploads:
     payment-dir: uploads/payments
   payment:
